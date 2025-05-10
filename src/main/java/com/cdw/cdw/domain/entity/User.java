@@ -1,0 +1,72 @@
+package com.cdw.cdw.domain.entity;
+
+import com.cdw.cdw.domain.enums.UserRole;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "users")
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "user_id")
+    String id;
+
+    @Column(name = "username", length = 100, unique = true)
+    String username;
+
+    @Column(name = "email", length = 255, unique = true, nullable = false)
+    String email;
+
+    @Column(name = "password_hash", length = 255, nullable = false)
+    String passwordHash;
+
+    @Column(name = "full_name", length = 255, nullable = false)
+    String fullName;
+
+    @Column(name = "phone_number", length = 20, unique = true)
+    String phoneNumber;
+
+    @Lob // Hoặc @Column(columnDefinition = "TEXT")
+    @Column(name = "address")
+    String address;
+
+    @ElementCollection(targetClass = UserRole.class)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role", nullable = false)
+    private Set<UserRole> roles = new HashSet<>(Set.of(UserRole.CUSTOMER)); // default value
+
+    @Column(name = "is_active", nullable = false)
+    boolean active = false; // Default value
+
+    @CreationTimestamp // Tự động gán thời gian tạo
+    @Column(name = "created_at", nullable = false, updatable = false)
+    LocalDateTime createdAt;
+
+    @UpdateTimestamp // Tự động gán thời gian cập nhật
+    @Column(name = "updated_at", nullable = false)
+    LocalDateTime updatedAt;
+
+//    // Relationships (Inverse side) - Chỉ định rõ nếu cần FetchType
+//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+//     Set<Order> ordersPlaced;
+//
+//    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+//     Set<Order> ordersHandled;
+}

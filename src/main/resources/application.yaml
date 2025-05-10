@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /cdw
+
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3306/cdw_database?zeroDateTimeBehavior=CONVERT_TO_NULL"
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  jwt:
+    signerKey: "4FDBF922FD266D8A6C1D7C5DA0989ED7"

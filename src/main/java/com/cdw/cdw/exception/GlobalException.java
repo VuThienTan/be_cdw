@@ -20,7 +20,8 @@ public class GlobalException {
 //        response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
 //        return ResponseEntity.badRequest().body(response);
 //    }
-    @ExceptionHandler(AppException.class)
+
+    @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handleRuntimeException(AppException e) {
         ErrorCode errorCode = e.getErrorCode();
         ApiResponse response = new ApiResponse();
@@ -31,6 +32,18 @@ public class GlobalException {
                 .body(response);
     }
 
+    @ExceptionHandler(value = AccessDeniedException.class)
+    ResponseEntity<ApiResponse> handleAccessDeniedException(AccessDeniedException e) {
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+        return ResponseEntity.status(errorCode.getHttpStatusCode()).body(
+                ApiResponse.builder()
+                        .code(errorCode.getCode())
+                        .message(errorCode.getMessage())
+                        .build()
+        );
+
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         String enumKey = e.getFieldError().getDefaultMessage();
@@ -38,7 +51,7 @@ public class GlobalException {
         try {
 
             errorCode = ErrorCode.valueOf(enumKey);
-        }catch (IllegalArgumentException ex){
+        } catch (IllegalArgumentException ex) {
             // Do nothing
         }
         ApiResponse response = new ApiResponse();

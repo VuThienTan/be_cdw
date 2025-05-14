@@ -26,9 +26,9 @@ import java.util.List;
 @Slf4j
 public class MenuItemService {
     @Autowired
-    private MenuItemRepository menuItemRepository;
-    private CategoryRepository categoryRepository;
-    private MenuItemMapper menuItemMapper;
+    MenuItemRepository menuItemRepository;
+    CategoryRepository categoryRepository;
+    MenuItemMapper menuItemMapper;
 
     public List<MenuItem> getMenuItems(){
         return menuItemRepository.findAll();

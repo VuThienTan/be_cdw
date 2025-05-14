@@ -13,8 +13,7 @@ import java.util.Set;
 
 
 @Builder
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -46,11 +45,8 @@ public class User {
     @Column(name = "address")
     String address;
 
-    @ElementCollection(targetClass = UserRole.class)
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role", nullable = false)
-    private Set<UserRole> roles = new HashSet<>(Set.of(UserRole.CUSTOMER)); // default value
+    @ManyToMany
+    Set<Role> roles;
 
     @Column(name = "is_active", nullable = false)
     boolean active = false; // Default value

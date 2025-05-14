@@ -21,6 +21,9 @@ public enum ErrorCode {
     //Feild Empty
     USERNAME_IS_REQUIRED(1004, "Username is empty", HttpStatus.BAD_REQUEST),
     PASSWORD_IS_REQUIRED(1004, "Password is empty", HttpStatus.BAD_REQUEST),
+    NAME_IS_REQUIRED(1004, "Name is empty", HttpStatus.BAD_REQUEST),
+    DESCRIPTION_IS_REQUIRED(1004, "Descriptions is empty", HttpStatus.BAD_REQUEST),
+    PERMISSION_IS_REQUIRED(1004, "Permissions is empty", HttpStatus.BAD_REQUEST),
 
     //Auth
     UNAUTHENTICATED(1005, "User not authenticated", HttpStatus.BAD_REQUEST),

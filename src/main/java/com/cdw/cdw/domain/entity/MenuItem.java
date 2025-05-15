@@ -30,6 +30,9 @@ public class MenuItem {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     BigDecimal price;
 
+    @Column(name = "nation")
+    int nation;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;

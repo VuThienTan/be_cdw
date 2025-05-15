@@ -2,12 +2,14 @@ package com.cdw.cdw.service;
 
 import com.cdw.cdw.domain.dto.request.AuthenticationRequest;
 import com.cdw.cdw.domain.dto.request.IntrospectRequest;
+import com.cdw.cdw.domain.dto.request.LogoutRequest;
 import com.cdw.cdw.domain.dto.response.AuthenticationResponse;
 import com.cdw.cdw.domain.dto.response.IntrospectResponse;
+import com.cdw.cdw.domain.entity.InvalidatedToken;
 import com.cdw.cdw.domain.entity.User;
-import com.cdw.cdw.domain.enums.UserRole;
 import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.exception.ErrorCode;
+import com.cdw.cdw.repository.InvalidatedTokenRepository;
 import com.cdw.cdw.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -22,16 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 
 import static com.cdw.cdw.exception.ErrorCode.USER_EXISTED;
 
@@ -41,6 +41,7 @@ import static com.cdw.cdw.exception.ErrorCode.USER_EXISTED;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService {
     UserRepository userRepository;
+    InvalidatedTokenRepository invalidatedTokenRepository;
 
     @NonFinal
     @Value("${spring.jwt.signerKey}")
@@ -60,17 +61,20 @@ public class AuthenticationService {
         return AuthenticationResponse.builder().token(token).success(true).build();
     }
 
-    public IntrospectResponse introspect(IntrospectRequest introspectRequest) throws JOSEException, ParseException {
-        var token = introspectRequest.getToken();
+    public IntrospectResponse introspect(IntrospectRequest request)
+            throws JOSEException, ParseException {
+        var token = request.getToken();
+        boolean isValid = true;
 
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
-        SignedJWT signedJWT = SignedJWT.parse(token);
+        try {
+            verifyToken(token);
+        } catch (AppException e) {
+            isValid = false;
+        }
 
-        Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
-
-        var verify = signedJWT.verify(verifier);
-
-        return IntrospectResponse.builder().valid(verify && expiration.after(new Date())).build();
+        return IntrospectResponse.builder()
+                .valid(isValid)
+                .build();
     }
 
     private String genarateToken(User user) {
@@ -81,6 +85,7 @@ public class AuthenticationService {
                 .issuer("hcmuaf")
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(10, ChronoUnit.HOURS).toEpochMilli()))
+                .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -95,9 +100,40 @@ public class AuthenticationService {
         }
     }
 
+    public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {
+        var signToken = verifyToken(logoutRequest.getToken());
+
+        String jit = signToken.getJWTClaimsSet().getJWTID();
+        Date exprireTime = signToken.getJWTClaimsSet().getExpirationTime();
+
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jit)
+                .expirationTime(exprireTime)
+                .build();
+
+        invalidatedTokenRepository.save(invalidatedToken);
+    }
+
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        var verify = signedJWT.verify(verifier);
+
+        if (!(verify && expiration.after(new Date()))) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        return signedJWT;
+    }
+
     private String buildScope(User user) {
         StringJoiner scopeJoiner = new StringJoiner(" ");
-
 
         if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(role -> {

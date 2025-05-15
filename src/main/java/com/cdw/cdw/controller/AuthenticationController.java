@@ -3,8 +3,10 @@ package com.cdw.cdw.controller;
 import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.AuthenticationRequest;
 import com.cdw.cdw.domain.dto.request.IntrospectRequest;
+import com.cdw.cdw.domain.dto.request.LogoutRequest;
 import com.cdw.cdw.domain.dto.response.AuthenticationResponse;
 import com.cdw.cdw.domain.dto.response.IntrospectResponse;
+import com.cdw.cdw.domain.entity.InvalidatedToken;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
@@ -36,5 +38,12 @@ public class AuthenticationController {
         return ApiResponse.<IntrospectResponse>builder()
                 .result(result)
                 .build();
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestBody LogoutRequest logoutRequest) throws ParseException, JOSEException {
+        authenticationService.logout(logoutRequest);
+        return null;
+
     }
 }

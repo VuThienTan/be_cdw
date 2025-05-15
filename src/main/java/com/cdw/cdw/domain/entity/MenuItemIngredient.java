@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "menu_item_ingredients",
         uniqueConstraints = @UniqueConstraint(columnNames = {"item_id", "ingredient_id"}, name = "uq_menu_item_ingredient")
-
 )
 public class MenuItemIngredient {
 

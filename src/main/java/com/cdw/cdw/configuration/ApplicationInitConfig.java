@@ -33,7 +33,7 @@ public class ApplicationInitConfig {
                         .email("21130170@st.hcmuaf.edu.vn")
                         .fullName("Admin")
                         .passwordHash(passwordEncoder.encode("admin"))
-                        .roles(role)
+//                        .roles(role)
                         .build();
                 userRepository.save(user);
                 log.warn("admin account hash generated");

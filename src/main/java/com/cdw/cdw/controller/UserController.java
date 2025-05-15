@@ -5,6 +5,9 @@ import com.cdw.cdw.domain.dto.request.UserCreateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.service.UserService;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +16,11 @@ import java.util.List;
 
 @RequestMapping("/users")
 @RestController
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class UserController {
-    @Autowired
-    private UserService userService;
+    UserService userService;
 
     @PostMapping
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request) {
@@ -26,7 +30,7 @@ public class UserController {
     }
 
     @GetMapping()
-    public List<UserResponse> getUsers() {
+    public List<UserResponse> getAll() {
         return userService.getAllUser();
     }
 
@@ -51,4 +55,5 @@ public class UserController {
         response.setResult(userService.getMyInfo());
         return response;
     }
+
 }

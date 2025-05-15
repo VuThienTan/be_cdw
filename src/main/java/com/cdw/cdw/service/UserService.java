@@ -51,7 +51,7 @@ public class UserService {
 
     @PostAuthorize(" returnObject.username == authentication.name || hasRole('ADMIN')")
     public UserResponse getUser(String id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User không tồn tại"));
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         return userMapper.toUserResponse(user);
     }

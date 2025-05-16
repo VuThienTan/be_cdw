@@ -2,6 +2,8 @@ package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.MenuItemCreateRequest;
+import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
+import com.cdw.cdw.domain.dto.response.MenuItemResponse;
 import com.cdw.cdw.domain.entity.MenuItem;
 import com.cdw.cdw.service.MenuItemService;
 import com.cdw.cdw.service.UserService;
@@ -25,8 +27,18 @@ public class MenuItemController {
 
 
     @GetMapping
-    public List<MenuItem> getAllMenuItems() {
-        return menuItemService.getMenuItems();
+    public ApiResponse<MenuItemPageResponse> getAllMenuItems(@RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "10") int size,
+                                                             @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                             @RequestParam(defaultValue = "desc") String direction,
+                                                             @RequestParam(required = false) Integer ration,
+                                                             @RequestParam(required = false) Double priceForm,
+                                                             @RequestParam(required = false) Double priceTo
+
+    ) {
+        ApiResponse<MenuItemPageResponse> response = new ApiResponse<>();
+        response.setResult(menuItemService.getMenuItems(page, size, sortBy, direction, ration, priceForm, priceTo));
+        return response;
     }
 
     @PostMapping

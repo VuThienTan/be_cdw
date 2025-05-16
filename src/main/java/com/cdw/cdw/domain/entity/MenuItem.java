@@ -30,8 +30,8 @@ public class MenuItem {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     BigDecimal price;
 
-    @Column(name = "nation")
-    int nation;
+    @Column(name = "ration")
+    int ration;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
@@ -51,4 +51,6 @@ public class MenuItem {
     @Column(name = "updated_at", nullable = false) // Không null
     private LocalDateTime updatedAt;
 
+    @Column(name = "discount", precision = 10, scale = 2)
+    BigDecimal discount;
 }

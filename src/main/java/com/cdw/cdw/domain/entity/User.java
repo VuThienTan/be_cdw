@@ -41,7 +41,7 @@ public class User {
     @Column(name = "phone_number", length = 20, unique = true)
     String phoneNumber;
 
-    @Lob // Hoặc @Column(columnDefinition = "TEXT")
+    @Lob
     @Column(name = "address")
     String address;
 

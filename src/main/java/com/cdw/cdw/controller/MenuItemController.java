@@ -2,6 +2,7 @@ package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.MenuItemCreateRequest;
+import com.cdw.cdw.domain.dto.response.InfoMenuItemResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemResponse;
 import com.cdw.cdw.domain.entity.MenuItem;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.*;
 import java.util.List;
 
 @RestController
@@ -38,6 +40,20 @@ public class MenuItemController {
     ) {
         ApiResponse<MenuItemPageResponse> response = new ApiResponse<>();
         response.setResult(menuItemService.getMenuItems(page, size, sortBy, direction, ration, priceForm, priceTo));
+        return response;
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<InfoMenuItemResponse> getMenuItem(@PathVariable Long id) {
+        ApiResponse<InfoMenuItemResponse> response = new ApiResponse<>();
+        response.setResult(menuItemService.getMenuItemById(id));
+        return response;
+    }
+
+    @GetMapping("/random")
+    public ApiResponse<List<MenuItemResponse>> getRandomMenuItem(){
+        ApiResponse<List<MenuItemResponse>> response = new ApiResponse<>();
+        response.setResult(menuItemService.randomMenuItem());
         return response;
     }
 

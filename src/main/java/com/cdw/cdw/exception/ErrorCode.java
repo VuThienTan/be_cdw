@@ -12,6 +12,8 @@ public enum ErrorCode {
     MENU_ITEM_ALREADY_EXISTS(1001, "Menu item existed", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED(1002, "Email already exists", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(1002, "Category not found", HttpStatus.BAD_REQUEST),
+    MENU_ITEM_NOT_FOUND(1002, "Menu item not found", HttpStatus.BAD_REQUEST),
+    INGREDIENT_NOT_FOUND(1002, "Ingredient not found", HttpStatus.BAD_REQUEST),
 
     //Valid
     INVALID_EMAIL(1003, "Invalid email", HttpStatus.BAD_REQUEST),

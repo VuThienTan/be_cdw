@@ -94,7 +94,7 @@ public class MenuItemService {
         return infoMenuItemResponse;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public MenuItem createMenuItem(MenuItemCreateRequest request) {
         // Kiểm tra trùng tên
         if (!menuItemRepository.findByName(request.getName()).isEmpty()) {

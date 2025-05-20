@@ -12,5 +12,5 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrdersCreateRequest {
     String userId;
-    List<String> items;
+    List<OrdersItemCreateRequest> items;
 }

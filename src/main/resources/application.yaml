@@ -5,16 +5,15 @@ server:
 
 spring:
   datasource:
-    url: "jdbc:mysql://localhost:3306/test?zeroDateTimeBehavior=CONVERT_TO_NULL"
+    url: "jdbc:mysql://localhost:3306/cdw_database?zeroDateTimeBehavior=CONVERT_TO_NULL"
     username: root
     password: root
   jpa:
-    sql:
-      init:
-        mode: always
     hibernate:
       ddl-auto: update
     show-sql: true
     defer-datasource-initialization: true
+  flyway:
+    enabled: false
   jwt:
     signerKey: "4FDBF922FD266D8A6C1D7C5DA0989ED7"

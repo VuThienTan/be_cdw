@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,15 +17,22 @@ import java.util.List;
 public class OrdersItem {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    String id;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-    private Orders order;
+    Orders order;
 
     @ManyToOne
     @JoinColumn(name = "menu_item_id")
-    private MenuItem menuItem;
+    MenuItem menuItem;
 
-    private int quantity;
+    BigDecimal unitPrice;
+
+    int quantity;
+
+    @Transient
+    public BigDecimal getTotalPrice() {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
 }

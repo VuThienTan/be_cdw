@@ -30,7 +30,7 @@ public class SecurityConfig {
     };
 
     private final String[] GET_PUBLIC_ENDPOINTS = {
-            "/menuItem"
+            "/menuItem", "/menuItem/*"
     };
 
     @Autowired

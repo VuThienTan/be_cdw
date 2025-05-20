@@ -7,12 +7,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Arrays;
 import java.util.HashSet;
 
 @Configuration
@@ -41,5 +44,21 @@ public class ApplicationInitConfig {
         };
     }
 
+    @Bean
+    public ApplicationRunner migrateFlyway() {
+        return args -> {
+            Flyway flyway = Flyway.configure()
+                    .dataSource("jdbc:mysql://localhost:3306/cdw_database", "root", "root")
+                    .locations("classpath:db/migration")
+                    .baselineOnMigrate(true)
+                    .load();
 
+            MigrationInfoService info = flyway.info();
+            System.out.println("Pending migrations:");
+            Arrays.stream(info.pending())
+                    .forEach(m -> System.out.println(m.getVersion() + " -> " + m.getDescription()));
+
+            flyway.migrate();
+        };
+    }
 }

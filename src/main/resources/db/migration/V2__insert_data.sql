@@ -1,39 +1,5 @@
--- MySQL dump 10.13  Distrib 8.0.41, for Win64 (x86_64)
---
--- Host: localhost    Database: cdw_database
--- ------------------------------------------------------
--- Server version	8.0.41
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Dumping data for table `categorys`
---
-
-/*!40000 ALTER TABLE categorys DISABLE KEYS */;
 INSERT INTO categorys VALUES ('1','2025-05-15 22:12:24.000000','Món chính','Món chính','2025-05-15 22:12:24.000000');
-/*!40000 ALTER TABLE categorys ENABLE KEYS */;
-
---
--- Dumping data for table `categorys_seq`
---
-
-/*!40000 ALTER TABLE categorys_seq DISABLE KEYS */;
 INSERT INTO categorys_seq VALUES (1);
-/*!40000 ALTER TABLE categorys_seq ENABLE KEYS */;
-
---
--- Dumping data for table `ingredient`
---
-
-/*!40000 ALTER TABLE ingredient DISABLE KEYS */;
 INSERT INTO ingredient VALUES (1,'GAM','2025-05-15 14:26:49.000000',NULL,'bạc hà','2025-05-15 14:26:49.000000');
 INSERT INTO ingredient VALUES (2,'GAM','2025-05-15 14:26:49.000000',NULL,'bạch tuộc','2025-05-15 14:26:49.000000');
 INSERT INTO ingredient VALUES (3,'GAM','2025-05-15 14:26:49.000000',NULL,'bánh flan','2025-05-15 14:26:49.000000');
@@ -464,22 +430,10 @@ INSERT INTO ingredient VALUES (431,'GAM','2025-05-15 14:26:49.000000',NULL,'xoà
 INSERT INTO ingredient VALUES (433,'GAM','2025-05-15 14:26:49.000000',NULL,'xúc xích','2025-05-15 14:26:49.000000');
 INSERT INTO ingredient VALUES (434,'GAM','2025-05-15 14:26:49.000000',NULL,'xuyên tiêu','2025-05-15 14:26:49.000000');
 INSERT INTO ingredient VALUES (435,'GAM','2025-05-15 14:26:49.000000',NULL,'yaua không đường','2025-05-15 14:26:49.000000');
-/*!40000 ALTER TABLE ingredient ENABLE KEYS */;
 
---
--- Dumping data for table `invalidated_token`
---
-
-/*!40000 ALTER TABLE invalidated_token DISABLE KEYS */;
 INSERT INTO invalidated_token VALUES ('2eab1623-3189-4751-a6ee-638d399f42cc','2025-05-15 23:31:14.000000');
 INSERT INTO invalidated_token VALUES ('ba57d634-637e-489d-b52a-2210963e5483','2025-05-15 22:54:25.000000');
-/*!40000 ALTER TABLE invalidated_token ENABLE KEYS */;
 
---
--- Dumping data for table `menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`)`
---
-
-/*!40000 ALTER TABLE menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) DISABLE KEYS */;
 INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) VALUES (1746598493,1,'2025-05-16 00:01:55.000000','Lẩu chao mực thơm béo đặc trưng của chao cùng với vị ngọt đậm đà của nước lẩu, mực giòn ngọt kết hợp rau đắng, đậu rồng giòn giòn. Món lẩu hấp dẫn đẹp mắt với miếng mực xoán vảy rồng bên trong nước nấu vàng óng tươi ngon của các loại rau ăn kèm.','https://monngonmoingay.com/wp-content/smush-webp/2022/10/lau-chao-muc.jpg.webp','Lẩu chao mực',210000.00,'2025-05-16 00:01:55.000000','1',NULL,4);
 INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) VALUES (1746598495,1,'2025-05-16 00:01:55.000000','Lẩu cua đồng là một món ăn đồng quê dân dã rất quen thuộc và lại dễ thực hiện, ăn kèm với thật nhiều rau tươi để cân bằng dưỡng chất cho cơ thể sau 1 tuần làm việc mệt nhọc. Cùng Món Ngon Mỗi Ngày vào bếp làm ngay món ngon cuối tuần cho gia đình thưởng th','https://monngonmoingay.com/wp-content/smush-webp/2022/10/lau-cua-dong.jpg.webp','Lẩu cua đồng',740000.00,'2025-05-16 00:01:55.000000','1',NULL,4);
 INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) VALUES (1746598498,1,'2025-05-16 00:01:55.000000','Món gà chiên bắp phô mai vàng giòn hấp dẫn hòa với màu phô mai thơm ngon. Món ngon cho bé với vị beo béo của phô mai và mayonnaise, miếng gà giòn giúp bé thích thú khi ăn.','https://monngonmoingay.com/wp-content/smush-webp/2022/10/ga-chien-bap-pho-mai.jpg.webp','Gà chiên bắp phô mai',480000.00,'2025-05-16 00:01:55.000000','1',NULL,4);
@@ -622,13 +576,7 @@ INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`
 INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) VALUES (1746598886,1,'2025-05-16 00:01:55.000000','Salad mực măng tây tươi xanh của măng tây cùng với màu đỏ của cà chua và màu vàng của mực chiên giòn. Món ăn có vị chua nhẹ của sốt cùng với vị giòn ngọt từ măng tây và mực.','https://monngonmoingay.com/wp-content/smush-webp/2023/09/salad-muc-mang-tay-1024x584.jpg.webp','Salad mực măng tây',730000.00,'2025-05-16 00:01:55.000000','1',NULL,4);
 INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) VALUES (1746598889,1,'2025-05-16 00:01:55.000000','Cá ngừ cuộn phô mai vàng giòn bên ngoài lại mềm ngọt bên trong kết hợp với mùi thơm của củ hồi và vị béo của phô mai thơm ngon lạ vị.','https://monngonmoingay.com/wp-content/smush-webp/2023/10/ca-ngu-cuon-pho-mai.jpg.webp','Cá ngừ cuộn phô mai',200000.00,'2025-05-16 00:01:55.000000','1',NULL,4);
 INSERT INTO menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) VALUES (1746598892,1,'2025-05-16 00:01:55.000000','Thịt bê om giấm nghệ thêm món mới cho mâm cơm gia đình. Thịt bê chín, da giòn, nước om hơi sánh vừa có màu vàng nghệ đẹp mắt, thơm mùi sả, vị bê om chua nhẹ, thấm vị.','https://monngonmoingay.com/wp-content/smush-webp/2023/10/thit-be-om-giam-nghe.jpg.webp','Thịt bê om giấm nghệ',470000.00,'2025-05-16 00:01:55.000000','1',NULL,4);
-/*!40000 ALTER TABLE menu_item (`menu_itenm_id`,`is_available`,`created_at`,`description`,`image_url`,`name`,`price`,`updated_at`,`category_id`,`discount`,`ration`) ENABLE KEYS */;
 
---
--- Dumping data for table `menu_item_ingredients`
---
-
-/*!40000 ALTER TABLE menu_item_ingredients DISABLE KEYS */;
 INSERT INTO menu_item_ingredients VALUES (844,600.000,245,1746598493);
 INSERT INTO menu_item_ingredients VALUES (845,150.000,73,1746598493);
 INSERT INTO menu_item_ingredients VALUES (846,2.000,358,1746598493);
@@ -1461,72 +1409,17 @@ INSERT INTO menu_item_ingredients VALUES (1675,1.000,149,1746598892);
 INSERT INTO menu_item_ingredients VALUES (1676,2.000,306,1746598892);
 INSERT INTO menu_item_ingredients VALUES (1677,2.000,290,1746598892);
 INSERT INTO menu_item_ingredients VALUES (1678,7.000,171,1746598892);
-/*!40000 ALTER TABLE menu_item_ingredients ENABLE KEYS */;
 
---
--- Dumping data for table `orders`
---
-
-/*!40000 ALTER TABLE orders DISABLE KEYS */;
-/*!40000 ALTER TABLE orders ENABLE KEYS */;
-
---
--- Dumping data for table `orders_item`
---
-
-/*!40000 ALTER TABLE orders_item DISABLE KEYS */;
-/*!40000 ALTER TABLE orders_item ENABLE KEYS */;
-
---
--- Dumping data for table `permission`
---
-
-/*!40000 ALTER TABLE permission DISABLE KEYS */;
 INSERT INTO permission VALUES ('CREATE_ORDER','Create order permission');
 INSERT INTO permission VALUES ('UPDATE_MENU','Update menu permission');
 INSERT INTO permission VALUES ('UPDATE_ORDER','Create order permission');
-/*!40000 ALTER TABLE permission ENABLE KEYS */;
 
---
--- Dumping data for table `role`
---
-
-/*!40000 ALTER TABLE role DISABLE KEYS */;
 INSERT INTO role VALUES ('ADMIN','Admin role');
-/*!40000 ALTER TABLE role ENABLE KEYS */;
 
---
--- Dumping data for table `role_permissions`
---
-
-/*!40000 ALTER TABLE role_permissions DISABLE KEYS */;
 INSERT INTO role_permissions VALUES ('ADMIN','UPDATE_MENU');
 INSERT INTO role_permissions VALUES ('ADMIN','UPDATE_ORDER');
-/*!40000 ALTER TABLE role_permissions ENABLE KEYS */;
 
---
--- Dumping data for table `users`
---
-
-/*!40000 ALTER TABLE users DISABLE KEYS */;
 INSERT INTO users VALUES ('0ced1e5b-2fc0-4447-b530-69551908ca12',_binary '\0',NULL,'2025-05-13 15:27:43.204584','21130170@st.hcmuaf.edu.vn','Admin','$2a$10$GT50D/Gcx.P9jBtpjxt7rO9PbQ080VVH1j8hVfEMSLEVxvqgUHhqe',NULL,'2025-05-13 15:27:43.204584','admin');
 INSERT INTO users VALUES ('fa8b37cc-4266-4940-97d8-c2abb4704b1e',_binary '\0','123 Main Street, City, Country','2025-05-13 22:58:51.001218','johndoe12@example.com','John Doe','$2a$10$hvxB86psVU3z7EyaonzpCew8b/DIS/CjDN/GVnPRAbFilmDASahU2','0123456789','2025-05-13 22:58:51.002218','johndoe12');
-/*!40000 ALTER TABLE users ENABLE KEYS */;
 
---
--- Dumping data for table `users_roles`
---
-
-/*!40000 ALTER TABLE users_roles DISABLE KEYS */;
 INSERT INTO users_roles VALUES ('0ced1e5b-2fc0-4447-b530-69551908ca12','ADMIN');
-/*!40000 ALTER TABLE users_roles ENABLE KEYS */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2025-05-16 22:13:28

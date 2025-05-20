@@ -44,12 +44,12 @@ public class UserService {
         return userMapper.toUserResponse(savedUser);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserResponse> getAllUser() {
         return userMapper.toUserResponse(userRepository.findAll());
     }
 
-    @PostAuthorize(" returnObject.username == authentication.name || hasRole('ADMIN')")
+    @PostAuthorize(" returnObject.username == authentication.name || hasAuthority('ADMIN')")
     public UserResponse getUser(String id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -67,7 +67,7 @@ public class UserService {
     }
 
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public UserResponse deleteUser(String id) {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isPresent()) {

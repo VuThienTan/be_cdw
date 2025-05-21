@@ -26,8 +26,6 @@ import java.util.List;
 
 public class MenuItemController {
     MenuItemService menuItemService;
-
-
     @GetMapping
     public ApiResponse<MenuItemPageResponse> getAllMenuItems(@RequestParam(defaultValue = "0") int page,
                                                              @RequestParam(defaultValue = "10") int size,

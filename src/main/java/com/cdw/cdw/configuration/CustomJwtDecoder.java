@@ -3,7 +3,6 @@ package com.cdw.cdw.configuration;
 import com.cdw.cdw.domain.dto.request.IntrospectRequest;
 import com.cdw.cdw.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,40 +13,41 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.text.ParseException;
-import java.util.Objects;
 
 @Component
 public class CustomJwtDecoder implements JwtDecoder {
-    @Value("${spring.jwt.signerKey}")
-    private String signerKey;
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final NimbusJwtDecoder jwtDecoder;
+    private final AuthenticationService authenticationService;
 
-    private NimbusJwtDecoder nimbusJwtDecoder = null;
+    public CustomJwtDecoder(
+            @Value("${spring.jwt.signerKey}") String signerKey,
+            AuthenticationService authenticationService
+    ) {
+        SecretKeySpec secretKey = new SecretKeySpec(signerKey.getBytes(), "HmacSHA256");
+
+        this.jwtDecoder = NimbusJwtDecoder
+                .withSecretKey(secretKey)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
+
+        this.authenticationService = authenticationService;
+    }
 
     @Override
     public Jwt decode(String token) throws JwtException {
-
         try {
-            var response = authenticationService.introspect(IntrospectRequest.builder()
-                    .token(token)
-                    .build());
+            var request = IntrospectRequest.builder().token(token).build();
+            var response = authenticationService.introspect(request);
 
-            if (!response.isValid())
-                throw new JwtException("Token invalid");
+            if (!response.isValid()) {
+                throw new JwtException("Token is invalid (introspection failed)");
+            }
+
+            return jwtDecoder.decode(token);
+
         } catch (JOSEException | ParseException e) {
-            throw new JwtException(e.getMessage());
+            throw new JwtException("Token decoding failed");
         }
-
-        if (Objects.isNull(nimbusJwtDecoder)) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS256");
-            nimbusJwtDecoder = NimbusJwtDecoder
-                    .withSecretKey(secretKeySpec)
-                    .macAlgorithm(MacAlgorithm.HS256)
-                    .build();
-        }
-
-        return nimbusJwtDecoder.decode(token);
     }
 }

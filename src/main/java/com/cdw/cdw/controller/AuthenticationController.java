@@ -10,6 +10,7 @@ import com.cdw.cdw.domain.entity.InvalidatedToken;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,8 +26,8 @@ public class AuthenticationController {
     AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
-        AuthenticationResponse result = authenticationService.authenticate(authenticationRequest);
+    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletResponse response) {
+        AuthenticationResponse result = authenticationService.authenticate(authenticationRequest, response);
         return ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
                 .build();

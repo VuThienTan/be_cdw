@@ -20,6 +20,7 @@ public enum ErrorCode {
     INVALID_PASSWORD(1003, "Password must be between 8 and 20 characters", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST(1003, "Invalid request", HttpStatus.BAD_REQUEST),
     INVALID_PHONE_NUMBER(1003, "Invalid phone number", HttpStatus.BAD_REQUEST),
+
     //Feild Empty
     USERNAME_IS_REQUIRED(1004, "Username is empty", HttpStatus.BAD_REQUEST),
     PASSWORD_IS_REQUIRED(1004, "Password is empty", HttpStatus.BAD_REQUEST),

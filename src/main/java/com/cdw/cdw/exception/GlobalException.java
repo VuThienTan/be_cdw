@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.nio.file.AccessDeniedException;
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalException {
@@ -45,18 +47,19 @@ public class GlobalException {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        String enumKey = e.getFieldError().getDefaultMessage();
-        ErrorCode errorCode = ErrorCode.INVALID_REQUEST;
-        try {
+    ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        Map<String, String> errors = new HashMap<>();
+        e.getBindingResult().getFieldErrors().forEach(error -> {
+            String fieldName = error.getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
 
-            errorCode = ErrorCode.valueOf(enumKey);
-        } catch (IllegalArgumentException ex) {
-            // Do nothing
-        }
-        ApiResponse response = new ApiResponse();
-        response.setCode(errorCode.getCode());
-        response.setMessage(errorCode.getMessage());
+        ApiResponse<Map<String, String>> response = new ApiResponse<>();
+        response.setCode(ErrorCode.INVALID_REQUEST.getCode());
+        response.setMessage("Validation failed");
+        response.setResult(errors);
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

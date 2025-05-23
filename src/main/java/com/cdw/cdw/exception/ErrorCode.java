@@ -35,7 +35,12 @@ public enum ErrorCode {
 
     INTERNAL_SERVER_ERROR(1008, "Internal server error", HttpStatus.BAD_REQUEST),
 //    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
+CART_ITEM_NOT_FOUND(1001, "Cart item not found", HttpStatus.NOT_FOUND),
+    MENU_ITEM_NOT_AVAILABLE(10002,"Menu item is not available",HttpStatus.BAD_REQUEST),
+    INVALID_QUANTITY( 1002,"Invalid quantity",HttpStatus.BAD_REQUEST),
+
     ;
+
     private int code;
     private String message;
     private HttpStatusCode httpStatusCode;

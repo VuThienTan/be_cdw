@@ -1,5 +1,7 @@
 package com.cdw.cdw.service;
 
+import com.cdw.cdw.domain.dto.request.ForgotPasswordRequest;
+import com.cdw.cdw.domain.dto.request.ResetPasswordRequest;
 import com.cdw.cdw.domain.dto.request.UserCreateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.domain.entity.User;
@@ -7,6 +9,7 @@ import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.UserMapper;
 import com.cdw.cdw.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,6 +31,8 @@ public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+    EmailService emailService;
+    JwtPasswordResetService jwtPasswordResetService;
 
     public UserResponse createUser(UserCreateRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -77,6 +82,35 @@ public class UserService {
         }
         return null;
     }
+    public void processForgotPassword(ForgotPasswordRequest request) {
+        String email = request.getEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        String token = jwtPasswordResetService.generatePasswordResetToken(email);
+
+        try {
+            emailService.sendPasswordResetEmail(email, token);
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.EMAIL_SENDING_ERROR);
+        }
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!jwtPasswordResetService.validateToken(request.getToken())) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        String email = jwtPasswordResetService.extractEmail(request.getToken());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 
 }

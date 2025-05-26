@@ -39,6 +39,10 @@ CART_ITEM_NOT_FOUND(1001, "Cart item not found", HttpStatus.NOT_FOUND),
     MENU_ITEM_NOT_AVAILABLE(10002,"Menu item is not available",HttpStatus.BAD_REQUEST),
     INVALID_QUANTITY( 1002,"Invalid quantity",HttpStatus.BAD_REQUEST),
 
+    EMAIL_SENDING_ERROR(1009, "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_TOKEN(1003, "Invalid or expired token", HttpStatus.BAD_REQUEST),
+    PASSWORD_MISMATCH(1004, "Passwords do not match", HttpStatus.BAD_REQUEST),
+
     ;
 
     private int code;

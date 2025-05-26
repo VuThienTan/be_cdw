@@ -11,6 +11,7 @@ public class PublicEndpointConfig {
     public final String[] POST_PUBLIC_ENDPOINTS = {
             "/users",
             "/auths/login", "/auths/introspect", "/auths/logout",
+            "/forgot-password", "/reset-password"
     };
 
     public final String[] GET_PUBLIC_ENDPOINTS = {

@@ -115,4 +115,22 @@ public class MenuItemService {
     }
 
 
+//    tìm kiếm
+    public MenuItemPageResponse searchMenuItemsByName(String keyword, int page, int size, String sortBy, String direction) {
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(Sort.Direction.DESC, sortBy)
+                : Sort.by(Sort.Direction.ASC, sortBy);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Page<MenuItem> data = menuItemRepository.findByNameContainingIgnoreCase(keyword, pageRequest);
+
+        return MenuItemPageResponse.builder()
+                .menuItems(data.getContent().stream().map(menuItemMapper::toMenuItemResponse).toList())
+                .currentPage(data.getNumber())
+                .totalPages(data.getTotalPages())
+                .totalItems(data.getTotalElements())
+                .pageSize(data.getSize())
+                .build();
+    }
+
 }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
@@ -61,4 +62,18 @@ public class MenuItemController {
         response.setResult(menuItemService.createMenuItem(menuItem));
         return response;
     }
+
+//tìm kiếm
+@GetMapping("/search")
+public ApiResponse<MenuItemPageResponse> searchMenuItemsByName(
+        @RequestParam String keyword,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "name") String sortBy,
+        @RequestParam(defaultValue = "asc") String direction) {
+
+    ApiResponse<MenuItemPageResponse> response = new ApiResponse<>();
+    response.setResult(menuItemService.searchMenuItemsByName(keyword, page, size, sortBy, direction));
+    return response;
+}
 }

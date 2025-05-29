@@ -104,6 +104,12 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+<!--      của tìm kiếm nha-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -15,7 +15,10 @@ public class PublicEndpointConfig {
     };
 
     public final String[] GET_PUBLIC_ENDPOINTS = {
-            "/menuItem", "/menuItem/*"
+            "/menuItem", "/menuItem/*",
+            "/oauth/github/callback",
+            "/auths/activate"
+
     };
 
     public List<String> getPublicEndpoints() {

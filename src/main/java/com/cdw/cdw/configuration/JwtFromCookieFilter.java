@@ -67,21 +67,14 @@ public class JwtFromCookieFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        // Lấy path không có context-path
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        String method = request.getMethod();
+        String method = request.getMethod().toUpperCase();
 
-        if ("POST".equalsIgnoreCase(method)) {
-            return Arrays.stream(publicEndpointConfig.POST_PUBLIC_ENDPOINTS)
-                    .anyMatch(pattern -> pathMatcher.match(pattern, path));
-        } else if ("GET".equalsIgnoreCase(method)) {
-            return Arrays.stream(publicEndpointConfig.GET_PUBLIC_ENDPOINTS)
-                    .anyMatch(pattern -> pathMatcher.match(pattern, path));
-        }
-
-        return false;
+        return switch (method) {
+            case "POST" -> Arrays.stream(publicEndpointConfig.POST_PUBLIC_ENDPOINTS).anyMatch(p -> pathMatcher.match(p, path));
+            case "GET" -> Arrays.stream(publicEndpointConfig.GET_PUBLIC_ENDPOINTS).anyMatch(p -> pathMatcher.match(p, path));
+            case "OPTIONS" -> true;
+            default -> false;
+        };
     }
-
-
-
 }

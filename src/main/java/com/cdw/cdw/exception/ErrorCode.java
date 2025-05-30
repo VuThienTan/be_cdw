@@ -14,6 +14,7 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(1002, "Category not found", HttpStatus.BAD_REQUEST),
     MENU_ITEM_NOT_FOUND(1002, "Menu item not found", HttpStatus.BAD_REQUEST),
     INGREDIENT_NOT_FOUND(1002, "Ingredient not found", HttpStatus.BAD_REQUEST),
+    ACTIVE_CODE_NOT_FOUND(1002, "Active code not found", HttpStatus.BAD_REQUEST),
 
     //Valid
     INVALID_EMAIL(1003, "Invalid email", HttpStatus.BAD_REQUEST),
@@ -31,18 +32,21 @@ public enum ErrorCode {
     //Auth
     UNAUTHENTICATED(1005, "User not authenticated", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1006, "User not permission", HttpStatus.FORBIDDEN),
-    TOKEN_EXPIRED(1007,"token expired", HttpStatus.BAD_REQUEST),
+    TOKEN_EXPIRED(1007, "token expired", HttpStatus.BAD_REQUEST),
 
     INTERNAL_SERVER_ERROR(1008, "Internal server error", HttpStatus.BAD_REQUEST),
-//    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
-CART_ITEM_NOT_FOUND(1001, "Cart item not found", HttpStatus.NOT_FOUND),
-    MENU_ITEM_NOT_AVAILABLE(10002,"Menu item is not available",HttpStatus.BAD_REQUEST),
-    INVALID_QUANTITY( 1002,"Invalid quantity",HttpStatus.BAD_REQUEST),
+    //    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
+    CART_ITEM_NOT_FOUND(1001, "Cart item not found", HttpStatus.NOT_FOUND),
+    MENU_ITEM_NOT_AVAILABLE(10002, "Menu item is not available", HttpStatus.BAD_REQUEST),
+    INVALID_QUANTITY(1002, "Invalid quantity", HttpStatus.BAD_REQUEST),
 
     EMAIL_SENDING_ERROR(1009, "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_TOKEN(1003, "Invalid or expired token", HttpStatus.BAD_REQUEST),
     PASSWORD_MISMATCH(1004, "Passwords do not match", HttpStatus.BAD_REQUEST),
 
+    TIME_EXPIRED(1005, "Time expired", HttpStatus.BAD_REQUEST),
+    ACCOUNT_IS_ACTIVE(1006, "Account is active", HttpStatus.BAD_REQUEST),
+    ACCOUNT_NOT_ACTIVE(1006, "Account isn't active", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

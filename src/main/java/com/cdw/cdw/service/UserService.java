@@ -4,31 +4,33 @@ import com.cdw.cdw.domain.dto.request.ForgotPasswordRequest;
 import com.cdw.cdw.domain.dto.request.ResetPasswordRequest;
 import com.cdw.cdw.domain.dto.request.UserCreateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
+import com.cdw.cdw.domain.entity.Role;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.UserMapper;
+import com.cdw.cdw.repository.RoleRepository;
 import com.cdw.cdw.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService {
     UserRepository userRepository;
+    RoleRepository roleRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     EmailService emailService;
@@ -43,8 +45,23 @@ public class UserService {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
-        User user = userMapper.toUser(request);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        Role role = roleRepository.findById("USER")
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        String code = UUID.randomUUID().toString();
+
+        try {
+            emailService.sendAccountActivationEmail(request.getEmail(), code, request.getFullName());
+        } catch (MessagingException e) {
+            throw new AppException(ErrorCode.EMAIL_SENDING_ERROR);
+        }
+
+        User user = userMapper.toUser(request).toBuilder()
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .roles(Set.of(role))
+                .codeActive(code)
+                .codeExpired(Date.from(Instant.now().plus(15, ChronoUnit.MINUTES)))
+                .build();
+
         User savedUser = userRepository.save(user);
         return userMapper.toUserResponse(savedUser);
     }
@@ -82,6 +99,7 @@ public class UserService {
         }
         return null;
     }
+
     public void processForgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
         User user = userRepository.findByEmail(email)

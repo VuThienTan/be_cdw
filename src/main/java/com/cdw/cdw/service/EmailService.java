@@ -40,5 +40,24 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendAccountActivationEmail(String to, String activationCode, String name) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        Context context = new Context();
+        context.setVariable("activationUrl", frontendUrl + "/activate?code=" + activationCode);
+        context.setVariable("name", to.split("@")[0]); // Lấy tên từ email
+
+        String emailContent = templateEngine.process("account-activation-template", context);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject("Kích hoạt tài khoản");
+        helper.setText(emailContent, true);
+
+        mailSender.send(message);
+    }
+
 }
 

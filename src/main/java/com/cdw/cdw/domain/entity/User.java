@@ -8,11 +8,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 
-@Builder
+@Builder (toBuilder = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,6 +48,12 @@ public class User {
 
     @ManyToMany
     Set<Role> roles;
+
+    @Column(name= "code_active", nullable= false)
+    String codeActive;
+
+    @Column(name= "code_expired")
+    Date codeExpired;
 
     @Column(name = "is_active", nullable = false)
     boolean active = false; // Default value

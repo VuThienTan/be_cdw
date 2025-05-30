@@ -13,8 +13,19 @@ spring:
       ddl-auto: update
     show-sql: true
     defer-datasource-initialization: true
+
   messages:
     encoding: UTF-8
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            redirect-uri: ${GITHUB_REDIRECT_URI}
+
   jwt:
     signerKey: "4FDBF922FD266D8A6C1D7C5DA0989ED7"
   mail:

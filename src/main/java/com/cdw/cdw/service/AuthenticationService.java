@@ -16,6 +16,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -42,6 +43,7 @@ import static com.cdw.cdw.exception.ErrorCode.USER_EXISTED;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService {
+    EmailService emailService;
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
 
@@ -49,27 +51,73 @@ public class AuthenticationService {
     @Value("${spring.jwt.signerKey}")
     protected String SIGNER_KEY;
 
-    public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest, HttpServletResponse response) {
-        var user = userRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow(() -> new AppException(USER_EXISTED));
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletResponse response) {
+        final User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if(!user.isActive()){
+            throw new AppException(ErrorCode.ACCOUNT_NOT_ACTIVE);
+        }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPasswordHash());
-        if (!authenticated) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        var token = genarateToken(user);
+        final String token = genarateToken(user);
+        response.addCookie(createJwtCookie(token));
 
-        // Tạo cookie
+        return AuthenticationResponse.builder()
+                .token(token)
+                .success(true)
+                .build();
+    }
+
+    public AuthenticationResponse activateUserAccount(String activationCode, HttpServletResponse response) {
+        final User user = userRepository.findByCodeActive(activationCode)
+                .orElseThrow(() -> new AppException(ErrorCode.ACTIVE_CODE_NOT_FOUND));
+
+        if (user.isActive()) {
+            throw new AppException(ErrorCode.ACCOUNT_IS_ACTIVE);
+        }
+
+        //Gửi lại code nếu hết hạn
+        if (user.getCodeExpired() != null && user.getCodeExpired().before(new Date())) {
+            final String newCode = UUID.randomUUID().toString();
+            final Date newExpire = Date.from(Instant.now().plus(15, ChronoUnit.MINUTES));
+
+            user.setCodeActive(newCode);
+            user.setCodeExpired(newExpire);
+            userRepository.save(user);
+
+            try {
+                emailService.sendAccountActivationEmail(user.getEmail(), newCode, user.getFullName());
+            } catch (MessagingException e) {
+                throw new AppException(ErrorCode.EMAIL_SENDING_ERROR);
+            }
+
+            throw new AppException(ErrorCode.TIME_EXPIRED);
+        }
+
+        user.setActive(true);
+        userRepository.save(user);
+
+        final String token = genarateToken(user);
+        response.addCookie(createJwtCookie(token));
+
+        return AuthenticationResponse.builder()
+                .token(token)
+                .success(true)
+                .build();
+    }
+
+    private Cookie createJwtCookie(String token) {
         Cookie jwtCookie = new Cookie("JWT_TOKEN", token);
         jwtCookie.setHttpOnly(true);
-//        jwtCookie.setSecure(true);
+//      jwtCookie.setSecure(true); // bật ở môi trường production
         jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(7 * 24 * 60 * 60);
-
-        response.addCookie(jwtCookie);
-
-        return AuthenticationResponse.builder().token(token).success(true).build();
+        jwtCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+        return jwtCookie;
     }
 
     public IntrospectResponse introspect(IntrospectRequest request)

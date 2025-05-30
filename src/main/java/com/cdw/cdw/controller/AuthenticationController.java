@@ -33,6 +33,14 @@ public class AuthenticationController {
                 .build();
     }
 
+    @GetMapping("/activate")
+    public ApiResponse<AuthenticationResponse> activateAccount(@RequestParam("code") String activationCode, HttpServletResponse response) {
+        AuthenticationResponse result = authenticationService.activateUserAccount(activationCode, response);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
+                .build();
+    }
+
     @PostMapping("/introspect")
     public ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest introspectRequest) throws ParseException, JOSEException {
         IntrospectResponse result = authenticationService.introspect(introspectRequest);

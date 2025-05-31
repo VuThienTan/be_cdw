@@ -46,7 +46,12 @@ public class UserService {
         }
 
         Role role = roleRepository.findById("USER")
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName("USER");
+                    newRole.setDescription("Default role for registered users");
+                    return roleRepository.save(newRole);
+                });
         String code = UUID.randomUUID().toString();
 
         try {

@@ -6,7 +6,6 @@ import com.cdw.cdw.domain.dto.response.MenuItemIngredientResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemResponse;
 import com.cdw.cdw.domain.entity.Category;
-import com.cdw.cdw.domain.entity.Ingredient;
 import com.cdw.cdw.domain.entity.MenuItem;
 import com.cdw.cdw.domain.entity.MenuItemIngredient;
 import com.cdw.cdw.exception.AppException;
@@ -14,6 +13,7 @@ import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.MenuItemIngredientMapper;
 import com.cdw.cdw.mapper.MenuItemMapper;
 import com.cdw.cdw.repository.*;
+import com.cdw.cdw.repository.spec.MenuItemSpecifications;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -41,23 +42,21 @@ public class MenuItemService {
     MenuItemMapper menuItemMapper;
     MenuItemIngredientMapper menuItemIngredientMapper;
 
-    public MenuItemPageResponse getMenuItems(int page, int size, String sortBy, String direction,
+    public MenuItemPageResponse getMenuItems(String keyword, int page, int size, String sortBy, String direction,
                                              Integer ration, Double priceFrom, Double priceTo) {
+
         Sort sort = direction.equalsIgnoreCase("desc")
                 ? Sort.by(Sort.Direction.DESC, sortBy)
                 : Sort.by(Sort.Direction.ASC, sortBy);
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        Page<MenuItem> data;
 
-        if (ration != null && priceFrom != null && priceTo != null) {
-            data = menuItemRepository.findByRationAndPriceBetween(ration, priceFrom, priceTo, pageRequest);
-        } else if (ration != null) {
-            data = menuItemRepository.findByRation(ration, pageRequest);
-        } else if (priceFrom != null && priceTo != null) {
-            data = menuItemRepository.findByPriceBetween(priceFrom, priceTo, pageRequest);
-        } else {
-            data = menuItemRepository.findAll(pageRequest);
-        }
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Specification<MenuItem> spec = Specification
+                .where(MenuItemSpecifications.hasKeyword(keyword))
+                .and(MenuItemSpecifications.hasRation(ration))
+                .and(MenuItemSpecifications.hasPriceBetween(priceFrom, priceTo));
+
+        Page<MenuItem> data = menuItemRepository.findAll(spec, pageRequest);
 
         return MenuItemPageResponse.builder()
                 .menuItems(data.getContent().stream().map(menuItemMapper::toMenuItemResponse).toList())

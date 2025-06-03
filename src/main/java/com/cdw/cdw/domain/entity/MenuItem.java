@@ -21,7 +21,7 @@ public class MenuItem {
     @Column(name = "menu_itenm_id")
     Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", columnDefinition = "VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin")
     String name;
 
     @Column(name = "description")

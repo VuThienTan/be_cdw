@@ -14,20 +14,20 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserCreateRequest {
 
-    @NotBlank(message = "{USERNAME_IS_REQUIRED}")
+    @NotBlank(message = "{username.required}")
     String username;
 
-    @NotBlank(message = "{PASSWORD_IS_REQUIRED}")
-    @Size(min = 8, max = 20, message = "{INVALID_PASSWORD}")
+    @NotBlank(message = "{password.required}")
+    @Size(min = 8, max = 20, message = "{invalid.password}")
     String password;
 
-    @NotBlank(message = "{INVALID_EMAIL}")
-    @Email(message = "{INVALID_EMAIL}")
+    @NotBlank(message = "{invalid.email}")
+    @Email(message = "{invalid.email}")
     String email;
 
     String fullName;
 
-    @Pattern(regexp = "^(0[0-9]{9})$", message = "{INVALID_PHONE_NUMBER}")
+    @Pattern(regexp = "^(0[0-9]{9})$", message = "{invalid.phone.number}")
     String phoneNumber;
 
     String address;

@@ -7,7 +7,6 @@ import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.domain.entity.Role;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.exception.AppException;
-import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.UserMapper;
 import com.cdw.cdw.repository.RoleRepository;
 import com.cdw.cdw.repository.UserRepository;
@@ -38,11 +37,11 @@ public class UserService {
 
     public UserResponse createUser(UserCreateRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new AppException(ErrorCode.EMAIL_EXISTED);
+            throw AppException.badRequest("email.existed");
         }
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new AppException(ErrorCode.USER_EXISTED);
+            throw AppException.badRequest("user.existed");
         }
 
         Role role = roleRepository.findById("USER")
@@ -57,7 +56,7 @@ public class UserService {
         try {
             emailService.sendAccountActivationEmail(request.getEmail(), code, request.getFullName());
         } catch (MessagingException e) {
-            throw new AppException(ErrorCode.EMAIL_SENDING_ERROR);
+            throw AppException.serverError("email.sending.error");
         }
 
         User user = userMapper.toUser(request).toBuilder()
@@ -76,9 +75,10 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.findAll());
     }
 
-    @PostAuthorize(" returnObject.username == authentication.name || hasAuthority('ADMIN')")
+    @PostAuthorize("returnObject.username == authentication.name || hasAuthority('ADMIN')")
     public UserResponse getUser(String id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         return userMapper.toUserResponse(user);
     }
@@ -88,11 +88,10 @@ public class UserService {
         String username = context.getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         return userMapper.toUserResponse(user);
     }
-
 
     @PreAuthorize("hasAuthority('ADMIN')")
     public UserResponse deleteUser(String id) {
@@ -108,32 +107,31 @@ public class UserService {
     public void processForgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         String token = jwtPasswordResetService.generatePasswordResetToken(email);
 
         try {
             emailService.sendPasswordResetEmail(email, token);
         } catch (MessagingException e) {
-            throw new AppException(ErrorCode.EMAIL_SENDING_ERROR);
+            throw AppException.serverError("email.sending.error");
         }
     }
 
     public void resetPassword(ResetPasswordRequest request) {
         if (!jwtPasswordResetService.validateToken(request.getToken())) {
-            throw new AppException(ErrorCode.INVALID_TOKEN);
+            throw AppException.badRequest("invalid.token");
         }
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+            throw AppException.badRequest("password.mismatch");
         }
 
         String email = jwtPasswordResetService.extractEmail(request.getToken());
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
-
 }

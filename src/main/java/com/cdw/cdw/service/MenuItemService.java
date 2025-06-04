@@ -6,11 +6,9 @@ import com.cdw.cdw.domain.dto.response.MenuItemIngredientResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemResponse;
 import com.cdw.cdw.domain.entity.Category;
-import com.cdw.cdw.domain.entity.Ingredient;
 import com.cdw.cdw.domain.entity.MenuItem;
 import com.cdw.cdw.domain.entity.MenuItemIngredient;
 import com.cdw.cdw.exception.AppException;
-import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.MenuItemIngredientMapper;
 import com.cdw.cdw.mapper.MenuItemMapper;
 import com.cdw.cdw.repository.*;
@@ -25,7 +23,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -75,7 +72,7 @@ public class MenuItemService {
     public InfoMenuItemResponse getMenuItemById(Long menuItemId) {
         // 1. Lấy menu item
         var menuItem = menuItemRepository.findById(menuItemId)
-                .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("menu.item.not.found"));
 
         var infoMenuItemResponse = menuItemMapper.toInfoMenuItemResponse(menuItem);
 
@@ -83,7 +80,7 @@ public class MenuItemService {
         List<MenuItemIngredientResponse> ingredientDtos = menuItemIngredients.stream()
                 .map(menuItemIngredient -> {
                     var ingredient = ingredientRepository.findById(menuItemIngredient.getIngredient().getId())
-                            .orElseThrow(() -> new AppException(ErrorCode.INGREDIENT_NOT_FOUND));
+                            .orElseThrow(() -> AppException.notFound("ingredient.not.found"));
 
                     return menuItemIngredientMapper.toMenuItemIngredient(menuItemIngredient, ingredient);
                 })
@@ -98,11 +95,11 @@ public class MenuItemService {
     public MenuItem createMenuItem(MenuItemCreateRequest request) {
         // Kiểm tra trùng tên
         if (!menuItemRepository.findByName(request.getName()).isEmpty()) {
-            throw new AppException(ErrorCode.MENU_ITEM_ALREADY_EXISTS);
+            throw AppException.badRequest("menu.item.exist");
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("category.not.found"));
 
         MenuItem menuItem = menuItemMapper.toMenuItem(request);
         menuItem.setCategory(category);

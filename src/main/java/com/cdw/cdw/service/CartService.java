@@ -8,7 +8,6 @@ import com.cdw.cdw.domain.entity.CartItem;
 import com.cdw.cdw.domain.entity.MenuItem;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.exception.AppException;
-import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.CartItemMapper;
 import com.cdw.cdw.repository.CartItemRepository;
 import com.cdw.cdw.repository.MenuItemRepository;
@@ -77,14 +76,14 @@ public class CartService {
     @CacheEvict(value = "userCart", key = "#userId")
     public CartItemResponse addItemToCart(String userId, CartItemRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
-                .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_FOUND));
+                .orElseThrow(() ->  AppException.notFound("menuItem.not.found"));
 
         // Kiểm tra xem sản phẩm có sẵn không
         if (!menuItem.isAvailable()) {
-            throw new AppException(ErrorCode.MENU_ITEM_NOT_AVAILABLE);
+            throw AppException.badRequest("menuItem.not.available");
         }
 
         // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
@@ -116,11 +115,11 @@ public class CartService {
     @CacheEvict(value = "userCart", key = "#userId")
     public CartItemResponse updateCartItem(String userId, Long cartItemId, CartItemUpdateRequest request) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("cartItem.not.found"));
 
         // Kiểm tra xem người dùng có quyền cập nhật mục này không
         if (!cartItem.getUser().getId().equals(userId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw AppException.unauthorized("unauthenticated");
         }
 
         cartItem.setQuantity(request.getQuantity());
@@ -137,11 +136,11 @@ public class CartService {
     @CacheEvict(value = "userCart", key = "#userId")
     public void removeCartItem(String userId, Long cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("cartItem.not.found"));
 
         // Kiểm tra xem người dùng có quyền xóa mục này không
         if (!cartItem.getUser().getId().equals(userId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw AppException.badRequest("unauthenticated");
         }
 
         cartItemRepository.delete(cartItem);
@@ -151,7 +150,7 @@ public class CartService {
     @CacheEvict(value = "userCart", key = "#userId")
     public void clearCart(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         List<CartItem> cartItems = cartItemRepository.findByUser(user);
         cartItemRepository.deleteAll(cartItems);
@@ -162,7 +161,7 @@ public class CartService {
         String username = authentication.getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         return getCartByUserId(user.getId());
     }
@@ -188,13 +187,13 @@ public class CartService {
     public CartItemResponse addItemToCartForCurrentUser(CartItemRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw AppException.unauthorized("unauthenticated");
         }
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     log.error("User not found with username: {}", username);
-                    return new AppException(ErrorCode.USER_NOT_FOUND);
+                    return  AppException.notFound("user.not.found");
                 });
         return addItemToCart(user.getId(), request);
     }

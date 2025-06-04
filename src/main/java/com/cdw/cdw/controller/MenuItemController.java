@@ -50,19 +50,6 @@ public class MenuItemController {
         return response;
     }
 
-    @GetMapping("/search")
-    public ApiResponse<MenuItemPageResponse> searchMenuItemsByName(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
-
-        ApiResponse<MenuItemPageResponse> response = new ApiResponse<>();
-        response.setResult(menuItemService.searchMenuItemsByName(keyword, page, size, sortBy, direction));
-        return response;
-    }
-
     @GetMapping("/{id}")
     public ApiResponse<InfoMenuItemResponse> getMenuItem(@PathVariable Long id) {
         ApiResponse<InfoMenuItemResponse> response = new ApiResponse<>();
@@ -83,7 +70,22 @@ public class MenuItemController {
         response.setResult(menuItemService.createMenuItem(menuItem));
         return response;
     }
+    //tìm kiếm
+    @GetMapping("/search")
+    public ApiResponse<MenuItemPageResponse> searchMenuItems(
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) Integer ration,
+            @RequestParam(required = false) Double priceFrom,
+            @RequestParam(required = false) Double priceTo) {
 
-//tìm kiếm
+        ApiResponse<MenuItemPageResponse> response = new ApiResponse<>();
+        response.setResult(menuItemService.getMenuItems(keyword, page, size, sortBy, direction, ration, priceFrom, priceTo));
+        return response;
+    }
+
 
 }

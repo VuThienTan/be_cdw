@@ -1,14 +1,12 @@
 package com.cdw.cdw.service;
 
 import com.cdw.cdw.domain.dto.request.OrdersCreateRequest;
-import com.cdw.cdw.domain.dto.request.OrdersItemCreateRequest;
 import com.cdw.cdw.domain.entity.MenuItem;
 import com.cdw.cdw.domain.entity.Orders;
 import com.cdw.cdw.domain.entity.OrdersItem;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.domain.enums.OrderStatus;
 import com.cdw.cdw.exception.AppException;
-import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.mapper.OrdersItemMapper;
 import com.cdw.cdw.repository.MenuItemRepository;
 import com.cdw.cdw.repository.OrdersItemRepository;
@@ -17,7 +15,6 @@ import com.cdw.cdw.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +33,7 @@ public class OrderService {
 
     public void createOrder(OrdersCreateRequest ordersCreateRequest) {
         log.info("Create Order" + ordersCreateRequest.toString());
-        User user = userRepository.findById(ordersCreateRequest.getUserId()).orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
+        User user = userRepository.findById(ordersCreateRequest.getUserId()).orElseThrow(() ->  AppException.badRequest("user.existed"));
         Orders order = Orders.builder()
                 .user(user)
                 .status(OrderStatus.PENDING)
@@ -45,7 +42,7 @@ public class OrderService {
         List<OrdersItem> orderItems = ordersCreateRequest.getItems().stream()
                 .map(itemReq -> {
                     MenuItem menuItem = menuItemRepository.findById(itemReq.getMenuItemId())
-                            .orElseThrow(() -> new AppException(ErrorCode.MENU_ITEM_NOT_FOUND));
+                            .orElseThrow(() ->  AppException.notFound("menu.item.not.found"));
 
                     return OrdersItem.builder()
                             .order(order)

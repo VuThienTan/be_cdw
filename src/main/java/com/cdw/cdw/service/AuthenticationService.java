@@ -8,7 +8,6 @@ import com.cdw.cdw.domain.dto.response.IntrospectResponse;
 import com.cdw.cdw.domain.entity.InvalidatedToken;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.exception.AppException;
-import com.cdw.cdw.exception.ErrorCode;
 import com.cdw.cdw.repository.InvalidatedTokenRepository;
 import com.cdw.cdw.repository.UserRepository;
 import com.nimbusds.jose.*;
@@ -27,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -35,8 +33,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-
-import static com.cdw.cdw.exception.ErrorCode.USER_EXISTED;
 
 @Slf4j
 @Service
@@ -53,15 +49,15 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletResponse response) {
         final User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         if(!user.isActive()){
-            throw new AppException(ErrorCode.ACCOUNT_NOT_ACTIVE);
+            throw AppException.badRequest("account.not.active");
         }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw AppException.unauthorized("unauthenticated");
         }
 
         final String token = genarateToken(user);
@@ -75,10 +71,10 @@ public class AuthenticationService {
 
     public AuthenticationResponse activateUserAccount(String activationCode, HttpServletResponse response) {
         final User user = userRepository.findByCodeActive(activationCode)
-                .orElseThrow(() -> new AppException(ErrorCode.ACTIVE_CODE_NOT_FOUND));
+                .orElseThrow(() -> AppException.notFound("active.code.not.found"));
 
         if (user.isActive()) {
-            throw new AppException(ErrorCode.ACCOUNT_IS_ACTIVE);
+            throw AppException.badRequest("account.is.active");
         }
 
         //Gửi lại code nếu hết hạn
@@ -93,10 +89,10 @@ public class AuthenticationService {
             try {
                 emailService.sendAccountActivationEmail(user.getEmail(), newCode, user.getFullName());
             } catch (MessagingException e) {
-                throw new AppException(ErrorCode.EMAIL_SENDING_ERROR);
+                throw AppException.serverError("email.sending.error");
             }
 
-            throw new AppException(ErrorCode.TIME_EXPIRED);
+            throw AppException.badRequest("time.expired");
         }
 
         user.setActive(true);
@@ -182,11 +178,11 @@ public class AuthenticationService {
         var verify = signedJWT.verify(verifier);
 
         if (!(verify && expiration.after(new Date()))) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw AppException.unauthorized("unauthenticated");
         }
 
         if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw AppException.unauthorized("unauthenticated");
 
         return signedJWT;
     }

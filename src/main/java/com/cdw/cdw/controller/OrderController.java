@@ -2,14 +2,13 @@ package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.OrdersCreateRequest;
+import com.cdw.cdw.domain.dto.response.OrderCreateResponse;
+import com.cdw.cdw.domain.dto.response.OrderResponse;
 import com.cdw.cdw.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/order")
@@ -19,8 +18,16 @@ public class OrderController {
     OrderService orderService;
 
     @PostMapping
-    public ApiResponse<Void> createOrder(@RequestBody OrdersCreateRequest order) {
-        orderService.createOrder(order);
-        return ApiResponse.<Void>builder().build();
+    public ApiResponse<OrderResponse> createOrder(@RequestBody OrdersCreateRequest request) {
+        return ApiResponse.<OrderResponse>builder()
+                .result(orderService.checkout(request))
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<Object> getAllOrders() {
+        return ApiResponse.<Object>builder()
+                .result(orderService.getAllOrders())
+                .build();
     }
 }

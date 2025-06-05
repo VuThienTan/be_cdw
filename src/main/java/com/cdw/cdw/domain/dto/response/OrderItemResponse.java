@@ -1,4 +1,4 @@
-package com.cdw.cdw.domain.dto.request;
+package com.cdw.cdw.domain.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -10,8 +10,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrdersItemCreateRequest {
-    Long menuItemId;
+public class OrderItemResponse {
+    String menuItemId;
+    String menuItemName;
     int quantity;
-    BigDecimal price;
+    BigDecimal unitPrice;
+    BigDecimal totalPrice;
 }

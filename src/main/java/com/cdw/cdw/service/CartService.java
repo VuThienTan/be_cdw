@@ -79,7 +79,7 @@ public class CartService {
                 .orElseThrow(() -> AppException.notFound("user.not.found"));
 
         MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
-                .orElseThrow(() ->  AppException.notFound("menuItem.not.found"));
+                .orElseThrow(() ->  AppException.notFound("menu.item.not.found"));
 
         // Kiểm tra xem sản phẩm có sẵn không
         if (!menuItem.isAvailable()) {

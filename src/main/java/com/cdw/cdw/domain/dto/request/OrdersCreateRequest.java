@@ -11,6 +11,13 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrdersCreateRequest {
+    String phoneNumber;
     String userId;
-    List<OrdersItemCreateRequest> items;
+    String address;
+    List<OrdersItemCreateRequest> orderItem;
+    double latitude;
+    double longitude;
+    String note;
+    String paymentMethod;
+    String promoCode;
 }

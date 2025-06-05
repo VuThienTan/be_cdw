@@ -2,31 +2,24 @@ package com.cdw.cdw.mapper;
 
 import com.cdw.cdw.domain.dto.response.CartItemResponse;
 import com.cdw.cdw.domain.entity.CartItem;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Component
-public class CartItemMapper {
+@Mapper(componentModel = "spring")
+public interface CartItemMapper {
 
-    public CartItemResponse toCartItemResponse(CartItem cartItem) {
-        return CartItemResponse.builder()
-                .id(cartItem.getId())
-                .menuItemId(cartItem.getMenuItem().getId())
-                .menuItemName(cartItem.getMenuItem().getName())
-                .menuItemImageUrl(cartItem.getMenuItem().getImageUrl())
-                .price(cartItem.getMenuItem().getPrice())
-                .discount(cartItem.getMenuItem().getDiscount())
-                .quantity(cartItem.getQuantity())
-                .note(cartItem.getNote())
-                .addedAt(cartItem.getCreatedAt())
-                .build();
-    }
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "menuItem.id", target = "menuItemId")
+    @Mapping(source = "menuItem.name", target = "menuItemName")
+    @Mapping(source = "menuItem.imageUrl", target = "menuItemImageUrl")
+    @Mapping(source = "menuItem.price", target = "price")
+    @Mapping(source = "menuItem.discount", target = "discount")
+    @Mapping(source = "quantity", target = "quantity")
+    @Mapping(source = "note", target = "note")
+    @Mapping(source = "createdAt", target = "addedAt")
+    CartItemResponse toCartItemResponse(CartItem cartItem);
 
-    public List<CartItemResponse> toCartItemResponseList(List<CartItem> cartItems) {
-        return cartItems.stream()
-                .map(this::toCartItemResponse)
-                .collect(Collectors.toList());
-    }
+    List<CartItemResponse> toCartItemResponseList(List<CartItem> cartItems);
 }

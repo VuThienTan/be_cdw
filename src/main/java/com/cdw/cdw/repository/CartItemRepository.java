@@ -13,20 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
-    List<CartItem> findByUser(User user);
-
-    @Query("SELECT ci FROM CartItem ci WHERE ci.user.id = :userId")
-    List<CartItem> findByUserId(@Param("userId") String userId);
-
+    List<CartItem> findByUserId(String userId);
     Optional<CartItem> findByUserAndMenuItem(User user, MenuItem menuItem);
-
-    @Query("SELECT SUM(ci.quantity) FROM CartItem ci WHERE ci.user.id = :userId")
-    Integer countItemsByUserId(@Param("userId") String userId);
-
-    @Query("DELETE FROM CartItem ci WHERE ci.user.id = :userId")
-    void deleteAllByUserId(@Param("userId") String userId);
-
-    @Query(value = "SELECT * FROM cart_items WHERE user_id = :userId AND created_at < DATE_SUB(NOW(), INTERVAL :days DAY)",
-            nativeQuery = true)
-    List<CartItem> findOldCartItems(@Param("userId") String userId, @Param("days") int days);
 }

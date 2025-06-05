@@ -1,7 +1,6 @@
 package com.cdw.cdw.service;
 
 import com.cdw.cdw.domain.dto.request.CartItemRequest;
-import com.cdw.cdw.domain.dto.request.CartItemUpdateRequest;
 import com.cdw.cdw.domain.dto.response.CartItemResponse;
 import com.cdw.cdw.domain.dto.response.CartResponse;
 import com.cdw.cdw.domain.entity.CartItem;
@@ -16,9 +15,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -47,8 +44,6 @@ public class CartService {
         BigDecimal totalDiscount = calculateTotalDiscount(cartItemResponses);
         BigDecimal total = subtotal.subtract(totalDiscount);
 
-
-
         return CartResponse.builder()
                 .items(cartItemResponses)
                 .totalItems(cartItems.size())
@@ -57,13 +52,13 @@ public class CartService {
                 .total(total)
                 .build();
     }
-
+// giá chưa giảm
     private BigDecimal calculateSubtotal(List<CartItemResponse> items) {
         return items.stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
+//giảm giá
     private BigDecimal calculateTotalDiscount(List<CartItemResponse> items) {
         return items.stream()
                 .map(item -> item.getDiscount() != null ?
@@ -73,7 +68,6 @@ public class CartService {
     }
 
     @Transactional
-    @CacheEvict(value = "userCart", key = "#userId")
     public CartItemResponse addItemToCart(String userId, CartItemRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> AppException.notFound("user.not.found"));
@@ -111,51 +105,6 @@ public class CartService {
         return cartItemMapper.toCartItemResponse(cartItem);
     }
 
-    @Transactional
-    @CacheEvict(value = "userCart", key = "#userId")
-    public CartItemResponse updateCartItem(String userId, Long cartItemId, CartItemUpdateRequest request) {
-        CartItem cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> AppException.notFound("cartItem.not.found"));
-
-        // Kiểm tra xem người dùng có quyền cập nhật mục này không
-        if (!cartItem.getUser().getId().equals(userId)) {
-            throw AppException.unauthorized("unauthenticated");
-        }
-
-        cartItem.setQuantity(request.getQuantity());
-        if (request.getNote() != null) {
-            cartItem.setNote(request.getNote());
-        }
-
-        cartItem = cartItemRepository.save(cartItem);
-
-        return cartItemMapper.toCartItemResponse(cartItem);
-    }
-
-    @Transactional
-    @CacheEvict(value = "userCart", key = "#userId")
-    public void removeCartItem(String userId, Long cartItemId) {
-        CartItem cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> AppException.notFound("cartItem.not.found"));
-
-        // Kiểm tra xem người dùng có quyền xóa mục này không
-        if (!cartItem.getUser().getId().equals(userId)) {
-            throw AppException.badRequest("unauthenticated");
-        }
-
-        cartItemRepository.delete(cartItem);
-    }
-
-    @Transactional
-    @CacheEvict(value = "userCart", key = "#userId")
-    public void clearCart(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> AppException.notFound("user.not.found"));
-
-        List<CartItem> cartItems = cartItemRepository.findByUser(user);
-        cartItemRepository.deleteAll(cartItems);
-    }
-
     public CartResponse getCurrentUserCart() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -166,23 +115,6 @@ public class CartService {
         return getCartByUserId(user.getId());
     }
 
-    // Scheduled task to clean old cart items (runs every day at midnight)
-    @Scheduled(cron = "0 0 0 * * ?")
-    @Transactional
-    public void cleanupOldCartItems() {
-        log.info("Starting scheduled cleanup of old cart items");
-        List<User> users = userRepository.findAll();
-
-        for (User user : users) {
-            List<CartItem> oldItems = cartItemRepository.findOldCartItems(user.getId(), 30);
-            if (!oldItems.isEmpty()) {
-                log.info("Removing {} old cart items for user {}", oldItems.size(), user.getId());
-                cartItemRepository.deleteAll(oldItems);
-            }
-        }
-
-        log.info("Completed scheduled cleanup of old cart items");
-    }
     @Transactional
     public CartItemResponse addItemToCartForCurrentUser(CartItemRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -196,6 +128,51 @@ public class CartService {
                     return  AppException.notFound("user.not.found");
                 });
         return addItemToCart(user.getId(), request);
+    }
+
+
+//    Xóa sản phẩm khỏi giỏ hàng
+    @Transactional
+    public void removeCartItem(Long cartItemId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
+
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> AppException.notFound("cartItem.not.found"));
+
+        // Kiểm tra xem sản phẩm có thuộc về người dùng hiện tại không
+        if (!cartItem.getUser().getId().equals(user.getId())) {
+            throw AppException.forbidden("access.denied");
+        }
+
+        cartItemRepository.delete(cartItem);
+    }
+
+    // Cập nhật số lượng
+    @Transactional
+    public CartItemResponse updateCartItemQuantity(Long id, int quantity) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
+
+        CartItem cartItem = cartItemRepository.findById(id)
+                .orElseThrow(() -> AppException.notFound("cartItem.not.found"));
+
+        // Kiểm tra xem sản phẩm có thuộc về người dùng hiện tại không
+        if (!cartItem.getUser().getId().equals(user.getId())) {
+            throw AppException.forbidden("access.denied");
+        }
+
+        // Cập nhật số lượng
+        cartItem.setQuantity(quantity);
+        cartItem = cartItemRepository.save(cartItem);
+
+        return cartItemMapper.toCartItemResponse(cartItem);
     }
 
 

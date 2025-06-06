@@ -23,24 +23,24 @@ import java.util.HashSet;
 public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
 
-    @Bean
-    public ApplicationRunner applicationRunner(UserRepository userRepository) {
-        return args -> {
-            if (userRepository.findByUsername("admin").isEmpty()) {
-                var role = new HashSet<UserRole>();
-                role.add(UserRole.ADMIN);
-                User user = User.builder()
-                        .username("admin")
-                        .email("21130170@st.hcmuaf.edu.vn")
-                        .fullName("Admin")
-                        .passwordHash(passwordEncoder.encode("admin"))
+//    @Bean
+//    public ApplicationRunner applicationRunner(UserRepository userRepository) {
+//        return args -> {
+//            if (userRepository.findByUsername("admin").isEmpty()) {
+//                var role = new HashSet<UserRole>();
+//                role.add(UserRole.ADMIN);
+//                User user = User.builder()
+//                        .username("admin")
+//                        .email("21130170@st.hcmuaf.edu.vn")
+//                        .fullName("Admin")
+//                        .passwordHash(passwordEncoder.encode("admin"))
 //                        .roles(role)
-                        .build();
-                userRepository.save(user);
-                log.warn("admin account hash generated");
-            }
-        };
-    }
+//                        .build();
+//                userRepository.save(user);
+//                log.warn("admin account hash generated");
+//            }
+//        };
+//    }
 
 //    @Bean
 //    public ApplicationRunner migrateFlyway() {

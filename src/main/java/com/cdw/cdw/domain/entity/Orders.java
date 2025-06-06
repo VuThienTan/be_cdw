@@ -18,14 +18,14 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "orders") // tránh trùng với từ khóa SQL
+@Table(name = "orders")
 public class Orders {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     User user;
 
@@ -43,7 +43,7 @@ public class Orders {
 
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrdersItem> orderItems = new ArrayList<>();
+    List<OrdersItem> orderItems = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -60,11 +60,11 @@ public class Orders {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    LocalDateTime updatedAt;
 
     @Transient
     public BigDecimal getTotalPrice() {
@@ -73,7 +73,6 @@ public class Orders {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    // helper method to add item
     public void addOrderItem(OrdersItem item) {
         item.setOrder(this);
         this.orderItems.add(item);

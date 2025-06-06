@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -175,5 +176,13 @@ public class CartService {
         return cartItemMapper.toCartItemResponse(cartItem);
     }
 
+    @CacheEvict(value = "userCart", key = "#userId")
+    public void clearCart(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
+
+        List<CartItem> cartItems = cartItemRepository.findByUserId(user.getId());
+        cartItemRepository.deleteAll(cartItems);
+    }
 
 }

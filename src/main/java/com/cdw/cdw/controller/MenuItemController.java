@@ -87,5 +87,9 @@ public class MenuItemController {
         return response;
     }
 
+    @GetMapping("/check/{id}")
+    public ApiResponse<Integer> checkAvailableQuantityForProduct(@PathVariable Long id) {
+        return ApiResponse.<Integer>builder().result(menuItemService.checkAvailableQuantityForProduct(id)).build();
+    }
 
 }

@@ -20,4 +20,5 @@ public class InfoMenuItemResponse {
     int ration;
     String imageUrl;
     List<MenuItemIngredientResponse> ingredients;
+    Integer inStock;
 }

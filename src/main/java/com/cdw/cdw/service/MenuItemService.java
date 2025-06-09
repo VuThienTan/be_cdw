@@ -5,9 +5,7 @@ import com.cdw.cdw.domain.dto.response.InfoMenuItemResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemIngredientResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemResponse;
-import com.cdw.cdw.domain.entity.Category;
-import com.cdw.cdw.domain.entity.MenuItem;
-import com.cdw.cdw.domain.entity.MenuItemIngredient;
+import com.cdw.cdw.domain.entity.*;
 import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.mapper.MenuItemIngredientMapper;
 import com.cdw.cdw.mapper.MenuItemMapper;
@@ -25,6 +23,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -37,6 +37,8 @@ public class MenuItemService {
     CategoryRepository categoryRepository;
     IngredientRepository ingredientRepository;
     MenuItemIngredientRepositoy itemsIngredientRepository;
+    InventoryRepository inventoryRepository;
+
     MenuItemMapper menuItemMapper;
     MenuItemIngredientMapper menuItemIngredientMapper;
 
@@ -57,7 +59,13 @@ public class MenuItemService {
         Page<MenuItem> data = menuItemRepository.findAll(spec, pageRequest);
 
         return MenuItemPageResponse.builder()
-                .menuItems(data.getContent().stream().map(menuItemMapper::toMenuItemResponse).toList())
+                .menuItems(data.getContent().stream()
+                        .map(menuItem -> {
+                            MenuItemResponse res = menuItemMapper.toMenuItemResponse(menuItem);
+                            res.setInStock(checkAvailableQuantityForProduct(menuItem.getId())); // 👈 thêm dòng này
+                            return res;
+                        })
+                        .toList())
                 .currentPage(data.getNumber())
                 .totalPages(data.getTotalPages())
                 .totalItems(data.getTotalElements())
@@ -86,6 +94,7 @@ public class MenuItemService {
                 })
                 .toList();
 
+        infoMenuItemResponse.setInStock(checkAvailableQuantityForProduct(menuItemId));
         infoMenuItemResponse.setIngredients(ingredientDtos);
 
         return infoMenuItemResponse;
@@ -128,6 +137,30 @@ public class MenuItemService {
                 .totalItems(data.getTotalElements())
                 .pageSize(data.getSize())
                 .build();
+    }
+
+    public Integer checkAvailableQuantityForProduct(Long menuItemId) {
+        List<MenuItemIngredient> ingredients = itemsIngredientRepository.findByMenuItem_Id(menuItemId);
+
+        int maxProduct = Integer.MAX_VALUE;
+
+        for (MenuItemIngredient mi : ingredients) {
+            Ingredient ingredient = mi.getIngredient();
+            BigDecimal requiredQty = mi.getQuantityRequired();
+
+            Inventory inventory = inventoryRepository.findByIngredient(ingredient)
+                    .orElseThrow(() -> new RuntimeException("Không có tồn kho cho nguyên liệu " + ingredient.getName()));
+
+            BigDecimal availableQty = inventory.getQuantity();
+
+            int possibleProductCount = availableQty.divide(requiredQty, RoundingMode.DOWN).intValue();
+
+            if (possibleProductCount < maxProduct) {
+                maxProduct = possibleProductCount;
+            }
+        }
+
+        return maxProduct == Integer.MAX_VALUE ? 0 : maxProduct;
     }
 
 }

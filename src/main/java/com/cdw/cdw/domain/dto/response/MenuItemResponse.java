@@ -20,4 +20,5 @@ public class MenuItemResponse {
     BigDecimal discount;
     int ration;
     String imageUrl;
+    Integer inStock;
 }

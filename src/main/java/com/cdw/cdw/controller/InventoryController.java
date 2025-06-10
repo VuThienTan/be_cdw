@@ -65,9 +65,12 @@ public class InventoryController {
     }
 
     @GetMapping("/{ingredientId}/stock-batches")
-    public ApiResponse<List<StockInBatchResponse>> getStockBatchesByIngredientId(@PathVariable Integer ingredientId) {
+    public ApiResponse<List<StockInBatchResponse>> getStockBatchesByIngredientId(
+            @PathVariable Integer ingredientId,
+            @RequestParam(name = "sort", defaultValue = "importedAt,desc") String sortParam
+    ) {
         try {
-            List<StockInBatchResponse> stockBatches = stockInService.getStockBatchesByIngredientId(ingredientId);
+            List<StockInBatchResponse> stockBatches = stockInService.getStockBatchesByIngredientId(ingredientId, sortParam);
             return ApiResponse.<List<StockInBatchResponse>>builder()
                     .result(stockBatches)
                     .success(true)
@@ -77,6 +80,22 @@ public class InventoryController {
                     .result(null)
                     .success(false)
                     .message(e.getMessage())
+                    .build();
+        }
+    }
+
+    @PostMapping("/init")
+    public ApiResponse<String> initializeStockData() {
+        try {
+            stockInService.initializeStockData();
+            return ApiResponse.<String>builder()
+                    .result("Khởi tạo dữ liệu kho thành công")
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            return ApiResponse.<String>builder()
+                    .result("Lỗi khởi tạo dữ liệu kho: " + e.getMessage())
+                    .success(false)
                     .build();
         }
     }

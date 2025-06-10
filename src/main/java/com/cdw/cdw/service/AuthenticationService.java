@@ -181,8 +181,11 @@ public class AuthenticationService {
             throw AppException.unauthorized("unauthenticated");
         }
 
-        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+        // Check if JWT ID exists before checking invalidated tokens
+        String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+        if (jwtId != null && invalidatedTokenRepository.existsById(jwtId)) {
             throw AppException.unauthorized("unauthenticated");
+        }
 
         return signedJWT;
     }

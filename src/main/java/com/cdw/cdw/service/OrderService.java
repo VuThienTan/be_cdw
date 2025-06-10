@@ -37,7 +37,7 @@ public class OrderService {
     OrdersMapper ordersMapper;
     EmailService emailService;
     StockInService stockInService;
-    MenuItemIngredientRepositoy menuItemIngredientRepository;
+    MenuItemIngredientRepositoy menuItemIngredientRepositoy;
 
     public List<OrderResponse> getAllOrders() {
         List<Orders> orders = ordersRepository.findAll();
@@ -68,11 +68,20 @@ public class OrderService {
             MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
                     .orElseThrow(() -> AppException.notFound("menu.item.not.found"));
 
-            // Get ingredients required for this menu item
-            List<MenuItemIngredient> menuItemIngredients = menuItemIngredientRepository.findByMenuItem_Id(itemRequest.getMenuItemId());
+            // Get ingredients required for this menu item (with ingredients loaded)
+            List<MenuItemIngredient> menuItemIngredients = menuItemIngredientRepositoy.findByMenuItem_IdWithIngredients(itemRequest.getMenuItemId());
             
             // Deduct ingredients from inventory (nearest expiry first)
             for (MenuItemIngredient menuItemIngredient : menuItemIngredients) {
+                // Add null checks
+                if (menuItemIngredient.getIngredient() == null) {
+                    throw AppException.badRequest("Ingredient data is missing for menu item: " + menuItem.getName());
+                }
+                
+                if (menuItemIngredient.getIngredient().getId() == null) {
+                    throw AppException.badRequest("Ingredient ID is missing for ingredient: " + menuItemIngredient.getIngredient().getName());
+                }
+                
                 BigDecimal totalRequiredQuantity = menuItemIngredient.getQuantityRequired()
                         .multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
                 

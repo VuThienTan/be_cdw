@@ -25,6 +25,9 @@ public class StockInBatch {
     @Column(name = "quantity", nullable = false)
     private BigDecimal quantity;
 
+    @Column(name = "used", nullable = false)
+    private BigDecimal used = BigDecimal.ZERO;
+
     @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
 
@@ -43,4 +46,18 @@ public class StockInBatch {
     @CreationTimestamp
     @Column(name = "imported_at", nullable = false, updatable = false)
     private LocalDateTime importedAt;
+
+    /**
+     * Get the remaining quantity in this batch
+     */
+    public BigDecimal getRemainingQuantity() {
+        return quantity.subtract(used);
+    }
+
+    /**
+     * Check if this batch has any remaining quantity
+     */
+    public boolean hasRemainingQuantity() {
+        return getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0;
+    }
 }

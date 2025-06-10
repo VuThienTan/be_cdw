@@ -5,6 +5,7 @@ import com.cdw.cdw.domain.dto.request.OrdersItemCreateRequest;
 import com.cdw.cdw.domain.dto.response.OrderCreateResponse;
 import com.cdw.cdw.domain.dto.response.OrderResponse;
 import com.cdw.cdw.domain.entity.MenuItem;
+import com.cdw.cdw.domain.entity.MenuItemIngredient;
 import com.cdw.cdw.domain.entity.Orders;
 import com.cdw.cdw.domain.entity.OrdersItem;
 import com.cdw.cdw.domain.entity.User;
@@ -13,6 +14,7 @@ import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.mapper.OrdersMapper;
 import com.cdw.cdw.repository.*;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +36,8 @@ public class OrderService {
     CartService cartService;
     OrdersMapper ordersMapper;
     EmailService emailService;
+    StockInService stockInService;
+    MenuItemIngredientRepositoy menuItemIngredientRepositoy;
 
     public List<OrderResponse> getAllOrders() {
         List<Orders> orders = ordersRepository.findAll();
@@ -42,6 +46,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public OrderResponse checkout(OrdersCreateRequest request) {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> AppException.notFound("user.not.found"));
@@ -58,9 +63,33 @@ public class OrderService {
                 .status(OrderStatus.PENDING)
                 .build();
 
+        // Process each order item and deduct ingredients
         for (OrdersItemCreateRequest itemRequest : request.getOrderItem()) {
             MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
                     .orElseThrow(() -> AppException.notFound("menu.item.not.found"));
+
+            // Get ingredients required for this menu item (with ingredients loaded)
+            List<MenuItemIngredient> menuItemIngredients = menuItemIngredientRepositoy.findByMenuItem_IdWithIngredients(itemRequest.getMenuItemId());
+            
+            // Deduct ingredients from inventory (nearest expiry first)
+            for (MenuItemIngredient menuItemIngredient : menuItemIngredients) {
+                // Add null checks
+                if (menuItemIngredient.getIngredient() == null) {
+                    throw AppException.badRequest("Ingredient data is missing for menu item: " + menuItem.getName());
+                }
+                
+                if (menuItemIngredient.getIngredient().getId() == null) {
+                    throw AppException.badRequest("Ingredient ID is missing for ingredient: " + menuItemIngredient.getIngredient().getName());
+                }
+                
+                BigDecimal totalRequiredQuantity = menuItemIngredient.getQuantityRequired()
+                        .multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+                
+                stockInService.deductIngredientsFromNearestExpiry(
+                    menuItemIngredient.getIngredient().getId(), 
+                    totalRequiredQuantity
+                );
+            }
 
             OrdersItem item = new OrdersItem();
             item.setMenuItem(menuItem);

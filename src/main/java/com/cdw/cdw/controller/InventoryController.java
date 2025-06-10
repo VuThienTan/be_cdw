@@ -1,8 +1,10 @@
 package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
+import com.cdw.cdw.domain.dto.request.StockInRequest;
 import com.cdw.cdw.domain.dto.response.InventoryResponse;
 import com.cdw.cdw.domain.dto.response.PageResponse;
+import com.cdw.cdw.domain.dto.response.StockInBatchResponse;
 import com.cdw.cdw.service.StockInService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +19,6 @@ public class InventoryController {
 
     private final StockInService stockInService;
 
-    @PostMapping("/reset-all")
-    public ResponseEntity<?> resetAllQuantities() {
-        stockInService.updateAllToTenThousandIncludingMissing();
-        return ResponseEntity.ok("Tất cả tồn kho đã được cập nhật thành 10.000 đơn vị");
-    }
-
     @GetMapping
     public ApiResponse<PageResponse<InventoryResponse>> getAllInventories(
             @RequestParam(defaultValue = "") String keyword,
@@ -33,5 +29,55 @@ public class InventoryController {
         return ApiResponse.<PageResponse<InventoryResponse>>builder()
                 .result(stockInService.getAllInventories(keyword, page, size, sort))
                 .build();
+    }
+
+    @GetMapping("/{ingredientId}")
+    public ApiResponse<InventoryResponse> getInventoryByIngredientId(@PathVariable Integer ingredientId) {
+        try {
+            InventoryResponse inventory = stockInService.getInventoryByIngredientId(ingredientId);
+            return ApiResponse.<InventoryResponse>builder()
+                    .result(inventory)
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            return ApiResponse.<InventoryResponse>builder()
+                    .result(null)
+                    .success(false)
+                    .message(e.getMessage())
+                    .build();
+        }
+    }
+
+    @PostMapping("/import")
+    public ApiResponse<String> importStock(@RequestBody StockInRequest request) {
+        try {
+            stockInService.importStock(request);
+            return ApiResponse.<String>builder()
+                    .result("Nhập kho thành công")
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            return ApiResponse.<String>builder()
+                    .result("Lỗi nhập kho: " + e.getMessage())
+                    .success(false)
+                    .build();
+        }
+    }
+
+    @GetMapping("/{ingredientId}/stock-batches")
+    public ApiResponse<List<StockInBatchResponse>> getStockBatchesByIngredientId(@PathVariable Integer ingredientId) {
+        try {
+            List<StockInBatchResponse> stockBatches = stockInService.getStockBatchesByIngredientId(ingredientId);
+            return ApiResponse.<List<StockInBatchResponse>>builder()
+                    .result(stockBatches)
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            return ApiResponse.<List<StockInBatchResponse>>builder()
+                    .result(null)
+                    .success(false)
+                    .message(e.getMessage())
+                    .build();
+        }
     }
 }

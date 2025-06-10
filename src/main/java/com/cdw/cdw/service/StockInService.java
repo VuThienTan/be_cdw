@@ -3,9 +3,11 @@ package com.cdw.cdw.service;
 import com.cdw.cdw.domain.dto.request.StockInRequest;
 import com.cdw.cdw.domain.dto.response.InventoryResponse;
 import com.cdw.cdw.domain.dto.response.PageResponse;
+import com.cdw.cdw.domain.dto.response.StockInBatchResponse;
 import com.cdw.cdw.domain.entity.Ingredient;
 import com.cdw.cdw.domain.entity.Inventory;
 import com.cdw.cdw.domain.entity.StockInBatch;
+import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.repository.IngredientRepository;
 import com.cdw.cdw.repository.InventoryRepository;
 import com.cdw.cdw.repository.StockInBatchRepository;
@@ -142,35 +144,91 @@ public class StockInService {
         inventoryRepository.save(inventory);
     }
 
-    public void updateAllInventoryToTenThousand() {
-        List<Inventory> allInventories = inventoryRepository.findAll();
+    public List<StockInBatchResponse> getStockBatchesByIngredientId(Integer ingredientId) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> AppException.notFound("ingredient.not.found"));
 
-        for (Inventory inventory : allInventories) {
-            inventory.setQuantity(BigDecimal.valueOf(10_000));
-            inventory.setLastRefilledAt(LocalDateTime.now());
-        }
+        List<StockInBatch> stockBatches = stockInBatchRepository.findByIngredient_IdOrderByImportedAtDesc(ingredientId);
 
-        inventoryRepository.saveAll(allInventories);
+        return stockBatches.stream()
+                .map(batch -> StockInBatchResponse.builder()
+                        .batchId(batch.getId())
+                        .ingredientId(batch.getIngredient().getId())
+                        .ingredientName(batch.getIngredient().getName())
+                        .quantity(batch.getQuantity())
+                        .unitPrice(batch.getUnitPrice())
+                        .totalPrice(batch.getTotalPrice())
+                        .supplier(batch.getSupplier())
+                        .note(batch.getNote())
+                        .expiryDate(batch.getExpiryDate())
+                        .importedAt(batch.getImportedAt())
+                        .build())
+                .toList();
     }
 
     @Transactional
-    public void updateAllToTenThousandIncludingMissing() {
-        List<Ingredient> allIngredients = ingredientRepository.findAll();
+    public void deductIngredientsFromNearestExpiry(Integer ingredientId, BigDecimal requiredQuantity) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> AppException.notFound("ingredient.not.found"));
 
-        for (Ingredient ingredient : allIngredients) {
-            Inventory inventory = inventoryRepository.findByIngredient(ingredient)
-                    .orElseGet(() -> {
-                        Inventory newInventory = new Inventory();
-                        newInventory.setIngredient(ingredient);
-                        newInventory.setQuantity(BigDecimal.ZERO); // sẽ set lại ngay sau
-                        return newInventory;
-                    });
-
-            inventory.setQuantity(BigDecimal.valueOf(10_000));
-            inventory.setLastRefilledAt(LocalDateTime.now());
-
-            inventoryRepository.save(inventory);
+        // Get stock batches ordered by expiry date (nearest expiry first)
+        List<StockInBatch> stockBatches = stockInBatchRepository.findByIngredient_IdOrderByExpiryDateAsc(ingredientId);
+        
+        if (stockBatches.isEmpty()) {
+            throw AppException.badRequest("No stock available for ingredient: " + ingredient.getName());
         }
+
+        BigDecimal remainingQuantity = requiredQuantity;
+        List<StockInBatch> batchesToUpdate = new ArrayList<>();
+
+        // Deduct from batches starting with the nearest expiry date
+        for (StockInBatch batch : stockBatches) {
+            if (remainingQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
+
+            BigDecimal availableInBatch = batch.getQuantity();
+            BigDecimal deductFromBatch = remainingQuantity.compareTo(availableInBatch) > 0 
+                ? availableInBatch 
+                : remainingQuantity;
+
+            batch.setQuantity(availableInBatch.subtract(deductFromBatch));
+            batchesToUpdate.add(batch);
+            remainingQuantity = remainingQuantity.subtract(deductFromBatch);
+        }
+
+        if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
+            throw AppException.badRequest("Insufficient stock for ingredient: " + ingredient.getName() + 
+                ". Required: " + requiredQuantity + ", Available: " + 
+                (requiredQuantity.subtract(remainingQuantity)));
+        }
+
+        // Save updated batches
+        stockInBatchRepository.saveAll(batchesToUpdate);
+
+        // Update inventory
+        Inventory inventory = inventoryRepository.findByIngredient(ingredient)
+                .orElseThrow(() -> AppException.notFound("inventory.not.found"));
+
+        inventory.setQuantity(inventory.getQuantity().subtract(requiredQuantity));
+        inventory.setLastRefilledAt(LocalDateTime.now());
+        inventoryRepository.save(inventory);
+    }
+
+    public InventoryResponse getInventoryByIngredientId(Integer ingredientId) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> AppException.notFound("ingradient.not.found"));
+
+        Inventory inventory = inventoryRepository.findByIngredient(ingredient)
+                .orElseThrow(() -> AppException.notFound("inventory.not.found"));
+
+        return InventoryResponse.builder()
+                .ingredientId(inventory.getIngredient().getId())
+                .ingredientName(inventory.getIngredient().getName())
+                .baseUnit(inventory.getIngredient().getBaseUnit().name())
+                .quantity(inventory.getQuantity())
+                .lastUpdatedAt(inventory.getLastRefilledAt())
+                .build();
     }
 
 }

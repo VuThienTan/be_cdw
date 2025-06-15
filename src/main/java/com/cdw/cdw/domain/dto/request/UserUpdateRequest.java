@@ -20,7 +20,7 @@ public class UserUpdateRequest {
     @Email(message = "INVALID_EMAIL")
     String email;
 
-    @NotBlank(message = "PASSWORD_IS_REQUIRED")
+
     @Size(min = 8, max = 20, message = "INVALID_PASSWORD")
     String password;
 

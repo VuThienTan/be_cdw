@@ -2,6 +2,7 @@ package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.UserCreateRequest;
+import com.cdw.cdw.domain.dto.request.UserUpdateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.service.UserService;
 import jakarta.validation.Valid;
@@ -29,11 +30,6 @@ public class UserController {
         return response;
     }
 
-    @GetMapping()
-    public List<UserResponse> getAll() {
-        return userService.getAllUser();
-    }
-
     @GetMapping("/{userId}")
     public ApiResponse<UserResponse> getUser(@PathVariable("userId") String id) {
         ApiResponse<UserResponse> response = new ApiResponse<>();
@@ -42,12 +38,7 @@ public class UserController {
     }
 
 
-    @DeleteMapping("/{userId}")
-    public ApiResponse<UserResponse> deleteUser(@PathVariable("userId") String id) {
-        ApiResponse<UserResponse> response = new ApiResponse<>();
-        response.setResult(userService.deleteUser(id));
-        return response;
-    }
+
 
     @GetMapping("/myInfo")
     public ApiResponse<UserResponse> myInfo () {
@@ -55,5 +46,28 @@ public class UserController {
         response.setResult(userService.getMyInfo());
         return response;
     }
+    @GetMapping()
+    public List<UserResponse> getAll() {
+        return userService.getAllUser();
+    }
+    @PutMapping("/{userId}")
+    public ApiResponse<UserResponse> updateUser(@PathVariable("userId") String id,
+                                                @RequestBody @Valid UserUpdateRequest request) {
+        ApiResponse<UserResponse> response = new ApiResponse<>();
+        response.setResult(userService.updateUser(id, request));
+        return response;
+    }
+    @DeleteMapping("/{userId}")
+    public ApiResponse<UserResponse> deleteUser(@PathVariable("userId") String id) {
+        ApiResponse<UserResponse> response = new ApiResponse<>();
+        response.setResult(userService.deleteUser(id));
+        return response;
+    }
+
+
+
+
+
+
 
 }

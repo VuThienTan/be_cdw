@@ -3,6 +3,7 @@ package com.cdw.cdw.service;
 import com.cdw.cdw.domain.dto.request.ForgotPasswordRequest;
 import com.cdw.cdw.domain.dto.request.ResetPasswordRequest;
 import com.cdw.cdw.domain.dto.request.UserCreateRequest;
+import com.cdw.cdw.domain.dto.request.UserUpdateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.domain.entity.Role;
 import com.cdw.cdw.domain.entity.User;
@@ -11,6 +12,7 @@ import com.cdw.cdw.mapper.UserMapper;
 import com.cdw.cdw.repository.RoleRepository;
 import com.cdw.cdw.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -70,11 +72,6 @@ public class UserService {
         return userMapper.toUserResponse(savedUser);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public List<UserResponse> getAllUser() {
-        return userMapper.toUserResponse(userRepository.findAll());
-    }
-
     @PostAuthorize("returnObject.username == authentication.name || hasAuthority('ADMIN')")
     public UserResponse getUser(String id) {
         User user = userRepository.findById(id)
@@ -93,16 +90,7 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public UserResponse deleteUser(String id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            userRepository.deleteById(id);
-            return userMapper.toUserResponse(user);
-        }
-        return null;
-    }
+
 
     public void processForgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
@@ -134,4 +122,80 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<UserResponse> getAllUser() {
+        try {
+            // Chỉ lấy người dùng có active = true
+            List<User> activeUsers = userRepository.findByActiveTrue();
+            return userMapper.toUserResponse(activeUsers);
+        } catch (Exception e) {
+            throw AppException.serverError("user.retrieve.error");
+        }
+    }
+
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public UserResponse updateUser(String id, UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> AppException.notFound("user.not.found"));
+
+        // Cập nhật thông tin người dùng
+        if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw AppException.badRequest("user.existed");
+            }
+            user.setUsername(request.getUsername());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw AppException.badRequest("email.existed");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
+
+        User savedUser = userRepository.save(user);
+        return userMapper.toUserResponse(savedUser);
+    }
+
+
+//    softdelete
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public UserResponse deleteUser(String id) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> AppException.notFound("user.not.found"));
+
+            // Đặt trạng thái active = false thay vì xóa
+            user.setActive(false);
+
+            // Lưu người dùng với trạng thái đã cập nhật
+            User savedUser = userRepository.save(user);
+
+
+            return userMapper.toUserResponse(savedUser);
+        } catch (Exception e) {
+
+            throw AppException.serverError("user.delete.error");
+        }
+    }
+
+
+
 }

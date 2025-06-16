@@ -17,6 +17,7 @@ spring:
 
   messages:
     encoding: UTF-8
+    basename: messages,messages_vi,messages_en
 
   security:
     oauth2:
@@ -26,7 +27,13 @@ spring:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             redirect-uri: ${GITHUB_REDIRECT_URI}
-
+          google:
+            client-id: 1064124095561-rritsm1pbm2vnt29mocdb1n5pvuen0a8.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: http://localhost:8080/cdw/login/oauth2/code/google
+            scope:
+              - email
+              - profile
   jwt:
     signerKey: "4FDBF922FD266D8A6C1D7C5DA0989ED7"
   mail:

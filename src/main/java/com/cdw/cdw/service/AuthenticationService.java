@@ -6,9 +6,11 @@ import com.cdw.cdw.domain.dto.request.LogoutRequest;
 import com.cdw.cdw.domain.dto.response.AuthenticationResponse;
 import com.cdw.cdw.domain.dto.response.IntrospectResponse;
 import com.cdw.cdw.domain.entity.InvalidatedToken;
+import com.cdw.cdw.domain.entity.Role;
 import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.repository.InvalidatedTokenRepository;
+import com.cdw.cdw.repository.RoleRepository;
 import com.cdw.cdw.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -18,6 +20,7 @@ import com.nimbusds.jwt.SignedJWT;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -42,10 +45,61 @@ public class AuthenticationService {
     EmailService emailService;
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
-
+    RoleRepository roleRepository;
+    PasswordEncoder passwordEncoder;
     @NonFinal
     @Value("${spring.jwt.signerKey}")
     protected String SIGNER_KEY;
+    @Transactional
+    public AuthenticationResponse authenticateWithGoogle(String email, String name) {
+        try {
+            log.info("Đang xác thực với Google cho email: {}", email);
+
+            // Sử dụng phương thức mới để tải eager roles
+            User user = userRepository.findByEmailWithRoles(email)
+                    .orElseGet(() -> {
+                        log.info("Tạo người dùng mới cho email: {}", email);
+                        // Nếu chưa tồn tại, tạo người dùng mới
+                        Role role = roleRepository.findById("USER")
+                                .orElseGet(() -> {
+                                    Role newRole = new Role();
+                                    newRole.setName("USER");
+                                    newRole.setDescription("Default role for registered users");
+                                    return roleRepository.save(newRole);
+                                });
+
+                        // Tạo người dùng mới với đầy đủ các trường bắt buộc
+                        User newUser = User.builder()
+                                .username(email)
+                                .email(email)
+                                .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                                .fullName(name != null ? name : "Google User")
+                                .active(true)
+                                .codeActive(UUID.randomUUID().toString())
+                                .roles(Set.of(role))
+                                .provider(User.AuthProvider.GOOGLE)
+                                .build();
+
+                        return userRepository.save(newUser);
+                    });
+
+            log.info("Người dùng đã được tìm thấy/tạo: {}", user.getUsername());
+
+            // Tạo token cho người dùng
+            final String token = genarateToken(user);
+            log.info("Token đã được tạo thành công");
+
+            return AuthenticationResponse.builder()
+                    .token(token)
+                    .success(true)
+                    .build();
+        } catch (Exception e) {
+            log.error("Lỗi khi xác thực với Google: ", e);
+            throw new RuntimeException("Không thể xác thực với Google: " + e.getMessage(), e);
+        }
+    }
+
+
 
     public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletResponse response) {
         final User user = userRepository.findByUsername(request.getUsername())

@@ -1,7 +1,9 @@
 package com.cdw.cdw.mapper;
 
 import com.cdw.cdw.domain.dto.response.OrderCreateResponse;
+import com.cdw.cdw.domain.dto.response.OrderDetailResponse;
 import com.cdw.cdw.domain.dto.response.OrderItemResponse;
+import com.cdw.cdw.domain.dto.response.OrderListResponse;
 import com.cdw.cdw.domain.dto.response.OrderResponse;
 import com.cdw.cdw.domain.dto.response.OrdersResponse;
 import com.cdw.cdw.domain.entity.Orders;
@@ -25,8 +27,24 @@ public interface OrdersMapper {
     @Mapping(source = "orderItems", target = "items")  // map orderItems sang items
     OrderResponse toOrderResponse(Orders order);
 
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.fullName", target = "userName")
+    @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(source = "user.phoneNumber", target = "userPhone")
+    @Mapping(source = "user.address", target = "userAddress")
+    @Mapping(source = "orderItems", target = "items")
+    @Mapping(target = "totalPrice", expression = "java(order.getTotalPrice())")
+    OrderDetailResponse toOrderDetailResponse(Orders order);
+
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.fullName", target = "userName")
+    @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(target = "totalPrice", expression = "java(order.getTotalPrice())")
+    OrderListResponse toOrderListResponse(Orders order);
+
     @Mapping(source = "menuItem.id", target = "menuItemId")
     @Mapping(source = "menuItem.name", target = "menuItemName")
+    @Mapping(source = "menuItem.imageUrl", target = "imageUrl")
     @Mapping(target = "totalPrice", expression = "java(item.getTotalPrice())")
     OrderItemResponse toOrdersItemResponse(OrdersItem item);
 

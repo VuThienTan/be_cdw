@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
@@ -66,6 +65,20 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     LocalDateTime updatedAt;
 
+
+    @Column(name = "provider")
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column(name = "provider_id")
+    private String providerId;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+    public enum AuthProvider {
+        LOCAL,
+        GOOGLE
+    }
 //    // Relationships (Inverse side) - Chỉ định rõ nếu cần FetchType
 //    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 //     Set<Order> ordersPlaced;

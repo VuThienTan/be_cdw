@@ -2,6 +2,7 @@ package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.MenuItemCreateRequest;
+import com.cdw.cdw.domain.dto.request.MenuItemUpdateRequest;
 import com.cdw.cdw.domain.dto.response.InfoMenuItemResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemResponse;
@@ -70,6 +71,14 @@ public class MenuItemController {
         response.setResult(menuItemService.createMenuItem(menuItem));
         return response;
     }
+
+    @PutMapping
+    public ApiResponse<MenuItemResponse> updateMenuItem(@RequestBody MenuItemUpdateRequest menuItem) {
+        ApiResponse<MenuItemResponse> response = new ApiResponse<>();
+        response.setResult(menuItemService.updateMenuItem(menuItem));
+        return response;
+    }
+    
     //tìm kiếm
     @GetMapping("/search")
     public ApiResponse<MenuItemPageResponse> searchMenuItems(

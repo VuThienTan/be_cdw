@@ -1,6 +1,7 @@
 package com.cdw.cdw.service;
 
 import com.cdw.cdw.domain.dto.request.MenuItemCreateRequest;
+import com.cdw.cdw.domain.dto.request.MenuItemUpdateRequest;
 import com.cdw.cdw.domain.dto.response.InfoMenuItemResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemIngredientResponse;
 import com.cdw.cdw.domain.dto.response.MenuItemPageResponse;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -36,7 +38,7 @@ public class MenuItemService {
     MenuItemRepository menuItemRepository;
     CategoryRepository categoryRepository;
     IngredientRepository ingredientRepository;
-    MenuItemIngredientRepositoy itemsIngredientRepository;
+    MenuItemIngredientRepository itemsIngredientRepository;
     InventoryRepository inventoryRepository;
 
     MenuItemMapper menuItemMapper;
@@ -120,6 +122,37 @@ public class MenuItemService {
         }
     }
 
+    @Transactional
+    public MenuItemResponse updateMenuItem(MenuItemUpdateRequest request) {
+        MenuItem menuItem = menuItemRepository.findById(request.getId())
+                .orElseThrow(() -> AppException.notFound("menu.item.not.found"));
+
+        menuItemMapper.updateMenuItemFromRequest(request, menuItem);
+
+        if (request.getIngredients() != null && !request.getIngredients().isEmpty()) {
+            itemsIngredientRepository.deleteByMenuItem(menuItem);
+
+            for (var ingredientRequest : request.getIngredients()) {
+                Ingredient ingredient = ingredientRepository.findByName(ingredientRequest.getName())
+                        .orElseGet(() -> {
+                            Ingredient newIngredient = new Ingredient();
+                            newIngredient.setName(ingredientRequest.getName());
+                            newIngredient.setBaseUnit(ingredientRequest.getBaseUnit());
+                            newIngredient.setDescription("Auto-created ingredient");
+                            return ingredientRepository.save(newIngredient);
+                        });
+
+                MenuItemIngredient menuItemIngredient = new MenuItemIngredient();
+                menuItemIngredient.setMenuItem(menuItem);
+                menuItemIngredient.setIngredient(ingredient);
+                menuItemIngredient.setQuantityRequired(ingredientRequest.getQuantityRequired());
+                itemsIngredientRepository.save(menuItemIngredient);
+            }
+        }
+
+        MenuItem savedMenuItem = menuItemRepository.save(menuItem);
+        return menuItemMapper.toMenuItemResponse(savedMenuItem);
+    }
 
 //    tìm kiếm
     public MenuItemPageResponse searchMenuItemsByName(String keyword, int page, int size, String sortBy, String direction) {

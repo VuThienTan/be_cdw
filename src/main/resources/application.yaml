@@ -1,3 +1,10 @@
+vnpay:
+  tmnCode: SO08KM91
+  hashSecret: 4307HNUTL9JFMNXN3MPGLSHAR31XZO6W
+  paymentUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  returnUrl: http://localhost:3000/payment-result
+
+
 server:
   port: 8080
   servlet:

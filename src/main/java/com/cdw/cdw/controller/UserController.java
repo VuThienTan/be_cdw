@@ -1,6 +1,7 @@
 package com.cdw.cdw.controller;
 
 import com.cdw.cdw.domain.dto.request.ApiResponse;
+import com.cdw.cdw.domain.dto.request.UpdateUserRequest;
 import com.cdw.cdw.domain.dto.request.UserCreateRequest;
 import com.cdw.cdw.domain.dto.request.UserUpdateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
@@ -64,10 +65,11 @@ public class UserController {
         return response;
     }
 
-
-
-
-
-
+    @PutMapping("/info/{id}")
+    public ApiResponse<UserResponse> updateUser(@PathVariable String id, @RequestBody UpdateUserRequest request) {
+        ApiResponse<UserResponse> response = new ApiResponse<>();
+        response.setResult(userService.updateUser(id, request));
+        return response;
+    }
 
 }

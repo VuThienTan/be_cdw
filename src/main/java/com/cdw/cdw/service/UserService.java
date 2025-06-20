@@ -46,6 +46,15 @@ public class UserService {
             throw AppException.badRequest("user.existed");
         }
 
+        // Kiểm tra mật khẩu và repassword
+        if (!request.getPassword().equals(request.getRepassword())) {
+            throw AppException.badRequest("password.mismatch");
+        }
+
+        // Kiểm tra độ dài mật khẩu
+        if (request.getPassword().length() < 8 || request.getPassword().length() > 20) {
+            throw AppException.badRequest("invalid.password");
+        }
         Role role = roleRepository.findById("USER")
                 .orElseGet(() -> {
                     Role newRole = new Role();

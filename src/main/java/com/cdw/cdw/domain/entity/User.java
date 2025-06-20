@@ -1,5 +1,6 @@
 package com.cdw.cdw.domain.entity;
 
+import com.cdw.cdw.domain.enums.AuthProvider;
 import com.cdw.cdw.domain.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -75,10 +76,7 @@ public class User {
 
     @Column(name = "image_url")
     private String imageUrl;
-    public enum AuthProvider {
-        LOCAL,
-        GOOGLE
-    }
+
 //    // Relationships (Inverse side) - Chỉ định rõ nếu cần FetchType
 //    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 //     Set<Order> ordersPlaced;

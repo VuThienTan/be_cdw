@@ -28,12 +28,11 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2User oauth2User = oauthToken.getPrincipal();
 
-            // Kiểm tra xem các thuộc tính có tồn tại không
+
             String email = oauth2User.getAttribute("email");
             String name = oauth2User.getAttribute("name");
 
             if (email == null) {
-//                log.error("Email không được cung cấp từ Google OAuth2");
                 getRedirectStrategy().sendRedirect(request, response, "/cdw/login?error=email_not_provided");
                 return;
             }
@@ -48,14 +47,12 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             jwtCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
             response.addCookie(jwtCookie);
 
-            // Chuyển hướng đến frontend URL thay vì context path
+
             getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000");
         } catch (Exception e) {
-//            log.error("Lỗi xử lý đăng nhập OAuth2: ", e);
             getRedirectStrategy().sendRedirect(request, response, "/cdw/login?error=authentication_failed");
         }
     }
-
 
 
 }

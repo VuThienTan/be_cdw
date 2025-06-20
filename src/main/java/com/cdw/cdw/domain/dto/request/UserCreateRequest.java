@@ -21,6 +21,9 @@ public class UserCreateRequest {
     @Size(min = 8, max = 20, message = "{invalid.password}")
     String password;
 
+    @NotBlank(message = "{repassword.required}")
+    private String repassword;
+
     @NotBlank(message = "{invalid.email}")
     @Email(message = "{invalid.email}")
     String email;

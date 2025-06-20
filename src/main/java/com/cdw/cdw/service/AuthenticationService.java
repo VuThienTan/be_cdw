@@ -8,6 +8,7 @@ import com.cdw.cdw.domain.dto.response.IntrospectResponse;
 import com.cdw.cdw.domain.entity.InvalidatedToken;
 import com.cdw.cdw.domain.entity.Role;
 import com.cdw.cdw.domain.entity.User;
+import com.cdw.cdw.domain.enums.AuthProvider;
 import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.repository.InvalidatedTokenRepository;
 import com.cdw.cdw.repository.RoleRepository;
@@ -53,13 +54,9 @@ public class AuthenticationService {
     @Transactional
     public AuthenticationResponse authenticateWithGoogle(String email, String name) {
         try {
-            log.info("Đang xác thực với Google cho email: {}", email);
-
-            // Sử dụng phương thức mới để tải eager roles
             User user = userRepository.findByEmailWithRoles(email)
                     .orElseGet(() -> {
                         log.info("Tạo người dùng mới cho email: {}", email);
-                        // Nếu chưa tồn tại, tạo người dùng mới
                         Role role = roleRepository.findById("USER")
                                 .orElseGet(() -> {
                                     Role newRole = new Role();
@@ -67,8 +64,6 @@ public class AuthenticationService {
                                     newRole.setDescription("Default role for registered users");
                                     return roleRepository.save(newRole);
                                 });
-
-                        // Tạo người dùng mới với đầy đủ các trường bắt buộc
                         User newUser = User.builder()
                                 .username(email)
                                 .email(email)
@@ -77,15 +72,12 @@ public class AuthenticationService {
                                 .active(true)
                                 .codeActive(UUID.randomUUID().toString())
                                 .roles(Set.of(role))
-                                .provider(User.AuthProvider.GOOGLE)
+                                .provider(AuthProvider.GOOGLE)
                                 .build();
 
                         return userRepository.save(newUser);
                     });
 
-            log.info("Người dùng đã được tìm thấy/tạo: {}", user.getUsername());
-
-            // Tạo token cho người dùng
             final String token = genarateToken(user);
             log.info("Token đã được tạo thành công");
 
@@ -111,7 +103,7 @@ public class AuthenticationService {
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw AppException.unauthorized("unauthenticated");
+            throw AppException.unauthorized("password.incorrect");
         }
 
         final String token = genarateToken(user);

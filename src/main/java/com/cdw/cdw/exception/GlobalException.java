@@ -101,10 +101,10 @@ public class GlobalException {
         errorToFieldMap.put("email.existed", "email");
         errorToFieldMap.put("phone.existed", "phoneNumber");
         errorToFieldMap.put("password.invalid", "password");
-        errorToFieldMap.put("password.mismatch", "confirmPassword");
+        errorToFieldMap.put("password.mismatch", "repassword");
         errorToFieldMap.put("user.not.found", "email");
         errorToFieldMap.put("invalid.token", "token");
-
+        errorToFieldMap.put("password.incorrect", "password");
         return errorToFieldMap.get(errorKey);
     }
 

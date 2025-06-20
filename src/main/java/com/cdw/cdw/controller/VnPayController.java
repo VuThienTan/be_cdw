@@ -80,10 +80,10 @@ public class VnPayController {
         for (String fieldName : fieldNames) {
             String fieldValue = vnp_Params.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                // Build hash data
+
                 hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
 
-                // Build query
+
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII))
                         .append('=')
                         .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));

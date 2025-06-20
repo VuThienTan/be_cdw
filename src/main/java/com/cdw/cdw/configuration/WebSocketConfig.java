@@ -18,7 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Thay vì sử dụng "*", chỉ định chính xác nguồn gốc được phép
+
         registry.addEndpoint("/ws-chatbot")
                 .setAllowedOrigins("http://localhost:3000")
                 .withSockJS();

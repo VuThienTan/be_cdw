@@ -40,8 +40,8 @@ spring:
             redirect-uri: http://localhost:8080/cdw/login/oauth2/code/google
             scope:
               - email
-  jwt:
               - profile
+  jwt:
     signerKey: "4FDBF922FD266D8A6C1D7C5DA0989ED7"
   mail:
     host: smtp.gmail.com

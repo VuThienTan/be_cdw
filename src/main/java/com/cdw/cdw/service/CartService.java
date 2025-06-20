@@ -36,37 +36,6 @@ public class CartService {
     UserRepository userRepository;
     CartItemMapper cartItemMapper;
 
-    @Cacheable(value = "userCart", key = "#userId")
-    public CartResponse getCartByUserId(String userId) {
-        List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
-        List<CartItemResponse> cartItemResponses = cartItemMapper.toCartItemResponseList(cartItems);
-
-        BigDecimal subtotal = calculateSubtotal(cartItemResponses);
-        BigDecimal totalDiscount = calculateTotalDiscount(cartItemResponses);
-        BigDecimal total = subtotal.subtract(totalDiscount);
-
-        return CartResponse.builder()
-                .items(cartItemResponses)
-                .totalItems(cartItems.size())
-                .subtotal(subtotal)
-                .totalDiscount(totalDiscount)
-                .total(total)
-                .build();
-    }
-// giá chưa giảm
-    private BigDecimal calculateSubtotal(List<CartItemResponse> items) {
-        return items.stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-//giảm giá
-    private BigDecimal calculateTotalDiscount(List<CartItemResponse> items) {
-        return items.stream()
-                .map(item -> item.getDiscount() != null ?
-                        item.getDiscount().multiply(BigDecimal.valueOf(item.getQuantity())) :
-                        BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 
     @Transactional
     public CartItemResponse addItemToCart(String userId, CartItemRequest request) {
@@ -105,6 +74,39 @@ public class CartService {
 
         return cartItemMapper.toCartItemResponse(cartItem);
     }
+    @Cacheable(value = "userCart", key = "#userId")
+    public CartResponse getCartByUserId(String userId) {
+        List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
+        List<CartItemResponse> cartItemResponses = cartItemMapper.toCartItemResponseList(cartItems);
+
+        BigDecimal subtotal = calculateSubtotal(cartItemResponses);
+        BigDecimal totalDiscount = calculateTotalDiscount(cartItemResponses);
+        BigDecimal total = subtotal.subtract(totalDiscount);
+
+        return CartResponse.builder()
+                .items(cartItemResponses)
+                .totalItems(cartItems.size())
+                .subtotal(subtotal)
+                .totalDiscount(totalDiscount)
+                .total(total)
+                .build();
+    }
+// giá chưa giảm
+    private BigDecimal calculateSubtotal(List<CartItemResponse> items) {
+        return items.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+//giảm giá
+    private BigDecimal calculateTotalDiscount(List<CartItemResponse> items) {
+        return items.stream()
+                .map(item -> item.getDiscount() != null ?
+                        item.getDiscount().multiply(BigDecimal.valueOf(item.getQuantity())) :
+                        BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+
 
     public CartResponse getCurrentUserCart() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

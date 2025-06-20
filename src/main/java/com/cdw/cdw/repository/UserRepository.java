@@ -21,7 +21,4 @@ public interface UserRepository extends JpaRepository<User, String> {
     List<User> findByActiveTrue();
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.email = :email")
     Optional<User> findByEmailWithRoles(@Param("email") String email);
-
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username")
-    Optional<User> findByUsernameWithRoles(@Param("username") String username);
 }

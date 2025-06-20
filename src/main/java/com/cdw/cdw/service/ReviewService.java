@@ -35,14 +35,13 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse createReview(ReviewRequest request) {
-        // Lấy thông tin người dùng hiện tại
+
         UserResponse currentUser = userService.getMyInfo();
 
-        // Kiểm tra sản phẩm tồn tại
+
         MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
 
-        // Tìm user entity từ ID
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 

@@ -1,9 +1,6 @@
 package com.cdw.cdw.service;
 
-import com.cdw.cdw.domain.dto.request.ForgotPasswordRequest;
-import com.cdw.cdw.domain.dto.request.ResetPasswordRequest;
-import com.cdw.cdw.domain.dto.request.UserCreateRequest;
-import com.cdw.cdw.domain.dto.request.UserUpdateRequest;
+import com.cdw.cdw.domain.dto.request.*;
 import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.domain.entity.Role;
 import com.cdw.cdw.domain.entity.User;
@@ -203,6 +200,25 @@ public class UserService {
         }
     }
 
+    public UserResponse updateUser(String id, UpdateUserRequest request) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = optionalUser.get();
+
+        // Chỉ cập nhật những trường được phép
+        user.setFullName(request.getFullName());
+        user.setUsername(request.getUsername());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddress(request.getAddress());
+
+        // Lưu lại user đã cập nhật
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
+    }
 
 
 }

@@ -4,6 +4,7 @@ import com.cdw.cdw.domain.dto.request.ApiResponse;
 import com.cdw.cdw.domain.dto.request.OrdersCreateRequest;
 import com.cdw.cdw.domain.dto.response.OrderCreateResponse;
 import com.cdw.cdw.domain.dto.response.OrderDetailResponse;
+import com.cdw.cdw.domain.dto.response.OrderListResponse;
 import com.cdw.cdw.domain.dto.response.OrderPageResponse;
 import com.cdw.cdw.domain.dto.response.OrderResponse;
 import com.cdw.cdw.domain.enums.OrderStatus;
@@ -15,6 +16,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/order")
@@ -51,6 +53,13 @@ public class OrderController {
     public ApiResponse<OrderDetailResponse> getOrderById(@PathVariable Long id) {
         return ApiResponse.<OrderDetailResponse>builder()
                 .result(orderService.getOrderById(id))
+                .build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ApiResponse<List<OrderListResponse>> getOrdersByUserId(@PathVariable String userId) {
+        return ApiResponse.<List<OrderListResponse>>builder()
+                .result(orderService.getOrdersByUserId(userId))
                 .build();
     }
 }

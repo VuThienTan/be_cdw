@@ -18,7 +18,10 @@ public class PublicEndpointConfig {
             "/menuItem", "/menuItem/*",
             "/oauth/github/callback",   
             "/auths/activate",
+
             "/api/translations", "/api/translations/**",
+
+            "/auths/logout"
 
     };
 

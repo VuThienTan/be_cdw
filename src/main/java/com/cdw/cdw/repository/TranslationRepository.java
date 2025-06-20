@@ -15,6 +15,4 @@ public interface TranslationRepository extends JpaRepository<Translation, Long> 
 
     Optional<Translation> findByLanguageAndKey(Language language, String key);
 
-    @Query("SELECT t FROM Translation t WHERE t.language.code = :languageCode")
-    List<Translation> findByLanguageCode(String languageCode);
 }

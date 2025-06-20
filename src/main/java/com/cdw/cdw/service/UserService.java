@@ -35,23 +35,23 @@ public class UserService {
     JwtPasswordResetService jwtPasswordResetService;
 
     public UserResponse createUser(UserCreateRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw AppException.badRequest("email.existed");
-        }
-
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw AppException.badRequest("user.existed");
-        }
-
-        // Kiểm tra mật khẩu và repassword
-        if (!request.getPassword().equals(request.getRepassword())) {
-            throw AppException.badRequest("password.mismatch");
-        }
-
-        // Kiểm tra độ dài mật khẩu
-        if (request.getPassword().length() < 8 || request.getPassword().length() > 20) {
-            throw AppException.badRequest("invalid.password");
-        }
+//        if (userRepository.existsByEmail(request.getEmail())) {
+//            throw AppException.badRequest("email.existed");
+//        }
+//
+//        if (userRepository.existsByUsername(request.getUsername())) {
+//            throw AppException.badRequest("user.existed");
+//        }
+//
+//        // Kiểm tra mật khẩu và repassword
+//        if (!request.getPassword().equals(request.getRepassword())) {
+//            throw AppException.badRequest("password.mismatch");
+//        }
+//
+//        // Kiểm tra độ dài mật khẩu
+//        if (request.getPassword().length() < 8 || request.getPassword().length() > 20) {
+//            throw AppException.badRequest("invalid.password");
+//        }
         Role role = roleRepository.findById("USER")
                 .orElseGet(() -> {
                     Role newRole = new Role();
@@ -131,7 +131,6 @@ public class UserService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserResponse> getAllUser() {
         try {
-            // Chỉ lấy người dùng có active = true
             List<User> activeUsers = userRepository.findByActiveTrue();
             return userMapper.toUserResponse(activeUsers);
         } catch (Exception e) {
@@ -145,7 +144,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> AppException.notFound("user.not.found"));
 
-        // Cập nhật thông tin người dùng
+
         if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
             if (userRepository.existsByUsername(request.getUsername())) {
                 throw AppException.badRequest("user.existed");
@@ -188,7 +187,6 @@ public class UserService {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> AppException.notFound("user.not.found"));
 
-            // Đặt trạng thái active = false thay vì xóa
             user.setActive(false);
 
             // Lưu người dùng với trạng thái đã cập nhật

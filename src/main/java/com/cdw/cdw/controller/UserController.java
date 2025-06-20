@@ -11,9 +11,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindingResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.cdw.cdw.exception.AppException;
 import org.springframework.web.bind.annotation.*;
-
+import com.cdw.cdw.validation.UserValidator;
 import java.util.List;
 
 @RequestMapping("/users")
@@ -23,9 +25,17 @@ import java.util.List;
 @Slf4j
 public class UserController {
     UserService userService;
-
+    UserValidator userValidator;
     @PostMapping
-    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request) {
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request, BindingResult bindingResult) {
+        // Áp dụng validator
+        userValidator.validate(request, bindingResult);
+
+        // Kiểm tra lỗi validation
+        if (bindingResult.hasErrors()) {
+            String errorCode = bindingResult.getFieldError().getCode();
+            throw AppException.badRequest(errorCode);
+        }
         ApiResponse<UserResponse> response = new ApiResponse<>();
         response.setResult(userService.createUser(request));
         return response;
@@ -51,6 +61,9 @@ public class UserController {
     public List<UserResponse> getAll() {
         return userService.getAllUser();
     }
+
+
+
     @PutMapping("/{userId}")
     public ApiResponse<UserResponse> updateUser(@PathVariable("userId") String id,
                                                 @RequestBody @Valid UserUpdateRequest request) {

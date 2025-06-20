@@ -1,5 +1,6 @@
 package com.cdw.cdw.mapper;
 
+import com.cdw.cdw.domain.dto.request.UpdateUserRequest;
 import com.cdw.cdw.domain.dto.response.OrderCreateResponse;
 import com.cdw.cdw.domain.dto.response.OrderDetailResponse;
 import com.cdw.cdw.domain.dto.response.OrderItemResponse;
@@ -8,6 +9,7 @@ import com.cdw.cdw.domain.dto.response.OrderResponse;
 import com.cdw.cdw.domain.dto.response.OrdersResponse;
 import com.cdw.cdw.domain.entity.Orders;
 import com.cdw.cdw.domain.entity.OrdersItem;
+import com.cdw.cdw.domain.entity.User;
 import com.cdw.cdw.domain.enums.OrderStatus;
 import org.mapstruct.*;
 
@@ -36,9 +38,18 @@ public interface OrdersMapper {
     @Mapping(target = "totalPrice", expression = "java(order.getTotalPrice())")
     OrderDetailResponse toOrderDetailResponse(Orders order);
 
+    @Mapping(source = "id", target = "id")
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "user.fullName", target = "userName")
     @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(source = "phoneNumber", target = "phoneNumber")
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "status", target = "status")
+    @Mapping(source = "paymentMethod", target = "paymentMethod")
+    @Mapping(source = "note", target = "note")
+    @Mapping(source = "promoCode", target = "promoCode")
+    @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "updatedAt", target = "updatedAt")
     @Mapping(target = "totalPrice", expression = "java(order.getTotalPrice())")
     OrderListResponse toOrderListResponse(Orders order);
 
@@ -54,5 +65,7 @@ public interface OrdersMapper {
     default String orderStatusToString(OrderStatus status) {
         return status == null ? null : status.name();
     }
+
+
 }
 

@@ -34,6 +34,8 @@ spring:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             redirect-uri: ${GITHUB_REDIRECT_URI}
+            scope:
+              - user:email
           google:
             client-id: 1064124095561-rritsm1pbm2vnt29mocdb1n5pvuen0a8.apps.googleusercontent.com
             client-secret: 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

@@ -2,21 +2,18 @@ package com.cdw.cdw.service;
 
 import com.cdw.cdw.domain.dto.request.OrdersCreateRequest;
 import com.cdw.cdw.domain.dto.request.OrdersItemCreateRequest;
-import com.cdw.cdw.domain.dto.response.OrderCreateResponse;
 import com.cdw.cdw.domain.dto.response.OrderDetailResponse;
 import com.cdw.cdw.domain.dto.response.OrderListResponse;
 import com.cdw.cdw.domain.dto.response.OrderPageResponse;
 import com.cdw.cdw.domain.dto.response.OrderResponse;
-import com.cdw.cdw.domain.entity.MenuItem;
-import com.cdw.cdw.domain.entity.MenuItemIngredient;
-import com.cdw.cdw.domain.entity.Orders;
-import com.cdw.cdw.domain.entity.OrdersItem;
-import com.cdw.cdw.domain.entity.User;
+import com.cdw.cdw.domain.entity.*;
 import com.cdw.cdw.domain.enums.OrderStatus;
 import com.cdw.cdw.exception.AppException;
 import com.cdw.cdw.mapper.OrdersMapper;
 import com.cdw.cdw.repository.*;
 import com.cdw.cdw.repository.spec.OrderSpecifications;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -27,7 +24,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -47,6 +46,8 @@ public class OrderService {
     EmailService emailService;
     StockInService stockInService;
     MenuItemIngredientRepository menuItemIngredientRepository;
+    SimpMessagingTemplate messagingTemplate;
+    NotificationRepository notificationRepository;
 
     public List<OrderResponse> getAllOrders() {
         List<Orders> orders = ordersRepository.findAll();
@@ -59,6 +60,13 @@ public class OrderService {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> AppException.notFound("order.not.found"));
         return ordersMapper.toOrderDetailResponse(order);
+    }
+
+    public List<OrderListResponse> getOrdersByUserId(String userId) {
+        List<Orders> orders = ordersRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        return orders.stream()
+                .map(ordersMapper::toOrderListResponse)
+                .collect(Collectors.toList());
     }
 
     public OrderPageResponse getOrdersWithPagination(
@@ -147,6 +155,21 @@ public class OrderService {
                     menuItemIngredient.getIngredient().getId(), 
                     totalRequiredQuantity
                 );
+
+                
+                BigDecimal threshold = BigDecimal.valueOf(50000); 
+                var ingredient = menuItemIngredient.getIngredient();
+                var inventoryIngredient = stockInService.getInventoryByIngredientId(ingredient.getId());
+                if (inventoryIngredient.getQuantity() != null && inventoryIngredient.getQuantity().compareTo(threshold) < 0) {
+                    var notify = new java.util.HashMap<String, Object>();
+                    notify.put("type", "LOW_STOCK");
+                    notify.put("ingredientId", ingredient.getId());
+                    notify.put("ingredientName", ingredient.getName());
+                    notify.put("quantity", inventoryIngredient.getQuantity());
+                    notify.put("threshold", threshold);
+                    messagingTemplate.convertAndSend("/topic/admin-notify", notify);
+                    saveNotification("LOW_STOCK", "Nguyên liệu '" + ingredient.getName() + "' gần hết: " + inventoryIngredient.getQuantity(), notify);
+                }
             }
 
             OrdersItem item = new OrdersItem();
@@ -164,6 +187,42 @@ public class OrderService {
         } catch (MessagingException e) {
             throw AppException.serverError("email.sending.error");
         }
+
+        // Gửi thông báo WebSocket cho admin khi có order mới
+        try {
+            // Tạo thông tin đơn hàng gửi cho admin
+            var orderNotification = new java.util.HashMap<String, Object>();
+            orderNotification.put("type", "NEW_ORDER");
+            orderNotification.put("orderId", savedOrder.getId());
+            orderNotification.put("customerName", user.getFullName());
+            orderNotification.put("totalAmount", savedOrder.getOrderItems().stream().map(i -> i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity()))).reduce(BigDecimal.ZERO, BigDecimal::add));
+            orderNotification.put("createdAt", savedOrder.getCreatedAt());
+            orderNotification.put("status", savedOrder.getStatus());
+            messagingTemplate.convertAndSend("/topic/admin-notify", orderNotification);
+            saveNotification("NEW_ORDER", "Bạn có đơn hàng mới #" + order.getId() + " từ " + user.getFullName(), orderNotification);
+        } catch (Exception e) {
+            log.error("Không thể gửi thông báo WebSocket cho admin: {}", e.getMessage());
+        }
         return ordersMapper.toOrderResponse(savedOrder);
     }
+    private void saveNotification(String type, String message, Object data) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            String dataJson = objectMapper.writeValueAsString(data);
+
+            Notification notification = Notification.builder()
+                    .type(type)
+                    .message(message)
+                    .data(dataJson)
+                    .read(false)
+                    .build();
+
+            notificationRepository.save(notification);
+        } catch (Exception ex) {
+            log.error("❌ Không thể lưu notification [{}]: {}", type, ex.getMessage());
+        }
+    }
+
 }

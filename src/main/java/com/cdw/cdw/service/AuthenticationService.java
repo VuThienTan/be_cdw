@@ -20,6 +20,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -153,7 +154,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    private Cookie createJwtCookie(String token) {
+    public Cookie createJwtCookie(String token) {
         Cookie jwtCookie = new Cookie("JWT_TOKEN", token);
         jwtCookie.setHttpOnly(true);
 //      jwtCookie.setSecure(true); // bật ở môi trường production
@@ -178,7 +179,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    private String genarateToken(User user) {
+    public String genarateToken(User user) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
@@ -201,18 +202,66 @@ public class AuthenticationService {
         }
     }
 
-    public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {
-        var signToken = verifyToken(logoutRequest.getToken());
-
-        String jit = signToken.getJWTClaimsSet().getJWTID();
-        Date exprireTime = signToken.getJWTClaimsSet().getExpirationTime();
-
-        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
-                .id(jit)
-                .expirationTime(exprireTime)
-                .build();
-
-        invalidatedTokenRepository.save(invalidatedToken);
+    public void logout(LogoutRequest logoutRequest, HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+        String token = null;
+        
+        // Try to get token from request body first
+        if (logoutRequest != null && logoutRequest.getToken() != null) {
+            token = logoutRequest.getToken();
+        } else {
+            // Try to get token from cookies
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("JWT_TOKEN".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // If no token found, just clear cookies and return
+        if (token == null || token.isEmpty()) {
+            clearJwtCookie(response);
+            return;
+        }
+        
+        try {
+            // Verify and invalidate the token
+            var signedToken = verifyToken(token);
+            String jit = signedToken.getJWTClaimsSet().getJWTID();
+            Date expirationTime = signedToken.getJWTClaimsSet().getExpirationTime();
+            
+            // Check if token is already invalidated
+            if (invalidatedTokenRepository.existsById(jit)) {
+                clearJwtCookie(response);
+                return;
+            }
+            
+            // Invalidate the token
+            InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                    .id(jit)
+                    .expirationTime(expirationTime)
+                    .build();
+            
+            invalidatedTokenRepository.save(invalidatedToken);
+            
+        } catch (Exception e) {
+            // If token verification fails, just clear cookies
+            log.warn("Token verification failed during logout: {}", e.getMessage());
+        } finally {
+            // Always clear the JWT cookie
+            clearJwtCookie(response);
+        }
+    }
+    
+    private void clearJwtCookie(HttpServletResponse response) {
+        Cookie jwtCookie = new Cookie("JWT_TOKEN", null);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(false); // Set to true in production with HTTPS
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0); // Delete the cookie
+        response.addCookie(jwtCookie);
     }
 
     private SignedJWT verifyToken(String token) throws JOSEException, ParseException {

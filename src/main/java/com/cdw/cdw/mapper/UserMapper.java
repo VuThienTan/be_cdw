@@ -1,5 +1,6 @@
 package com.cdw.cdw.mapper;
 
+import com.cdw.cdw.domain.dto.request.UpdateUserRequest;
 import com.cdw.cdw.domain.dto.request.UserCreateRequest;
 import com.cdw.cdw.domain.dto.response.UserResponse;
 import com.cdw.cdw.domain.entity.User;
@@ -12,4 +13,5 @@ public interface UserMapper {
     User toUser(UserCreateRequest userCreateRequest);
     UserResponse toUserResponse(User user);
     List<UserResponse> toUserResponse(List<User> users);
+    User toUser(UpdateUserRequest user);
 }
